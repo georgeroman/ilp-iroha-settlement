@@ -5,12 +5,18 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.3.0.RELEASE</version>
+  </parent>
+
   <groupId>org.interledger.iroha.settlement</groupId>
   <artifactId>ilp-iroha-settlement</artifactId>
   <version>master-SNAPSHOT</version>
 
   <name>Hyperledger Iroha ILP settlement engine</name>
-  <description>An ILP settlement engine for HL Iroha</description>
+  <description>ILP settlement engine for Hyperledger Iroha</description>
   <inceptionYear>2020</inceptionYear>
 
   <licenses>
@@ -44,34 +50,45 @@
       <version>5.6.2</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.12</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <exclusions>
+        <!-- https://stackoverflow.com/a/42641450 -->
+        <exclusion>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
   </dependencies>
 
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.6.0</version>
-        <configuration>
-          <cleanupDaemonThreads>false</cleanupDaemonThreads>
-          <mainClass>org.interledger.iroha.settlement.App</mainClass>
-        </configuration>
-      </plugin>
-      <plugin>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>3.1.1</version>
         <configuration>
           <configLocation>checkstyle.xml</configLocation>
-          <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
-          <linkXRef>false</linkXRef>
-          <violationSeverity>error</violationSeverity>
-          <failOnViolation>true</failOnViolation>
+          <encoding>UTF-8</encoding>
           <failOnError>true</failOnError>
+          <failOnViolation>true</failOnViolation>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <linkXRef>false</linkXRef>
           <sourceDirectories>
             <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
           </sourceDirectories>
-          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <violationSeverity>error</violationSeverity>
         </configuration>
         <dependencies>
           <dependency>
@@ -128,6 +145,11 @@
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.22.1</version>
+      </plugin>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>2.2.1.RELEASE</version>
       </plugin>
     </plugins>
   </build>
