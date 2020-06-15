@@ -5,8 +5,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
-import org.interledger.iroha.settlement.model.SettlementAccount;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -27,7 +25,7 @@ public class SettlementController {
    * <p>Called by the Connector to inform the Settlement Engine that a new account was created within
    * the accounting system using the given account identifier.</p>
    *
-   * @param account The {@link SettlementAccount} as supplied by the Connector.
+   * @param accountId The account identifier as supplied by the Connector.
    *
    * @return
    */
@@ -37,11 +35,11 @@ public class SettlementController {
       consumes = APPLICATION_JSON_VALUE
   )
   public ResponseEntity<Void> setupAccount(
-      @RequestBody final SettlementAccount account
+      @RequestBody final String accountId
   ) {
     // TODO: implement
 
-    this.logger.info("POST /accounts { id: {} }", account.getId());
+    this.logger.info("POST /accounts { id: {} }", accountId);
 
     return new ResponseEntity<>(HttpStatus.CREATED); 
   }
@@ -49,20 +47,20 @@ public class SettlementController {
   /**
    * <p>Called by the Connector to inform the Settlement Engine that an account was deleted.</p>
    *
-   * @param account The {@link SettlementAccount} as supplied by the Connector.
+   * @param accountId The account identifier as supplied by the Connector.
    *
    * @return
    */
   @RequestMapping(
-      path = "/accounts/{account}",
+      path = "/accounts/{accountId}",
       method = RequestMethod.DELETE
   )
   public ResponseEntity<Void> deleteAccount(
-      @PathVariable final SettlementAccount account
+      @PathVariable final String accountId
   ) {
     // TODO: implement
 
-    this.logger.info("DELETE /accounts/{}", account.getId());
+    this.logger.info("DELETE /accounts/{}", accountId);
 
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
@@ -73,23 +71,23 @@ public class SettlementController {
    * @param idempotencyKey The idempotence identifier defined in the Settlement Engine RFC
    *                       (typed as a {@link String}, but should always be a Type4 UUID).
    *
-   * @param account        The {@link SettlementAccount} as supplied by the Connector.
+   * @param accountId      The account identifier as supplied by the Connector.
    *
    * @return
    */
   @RequestMapping(
-      path = "/accounts/{account}/settlements",
+      path = "/accounts/{accountId}/settlements",
       method = RequestMethod.POST,
       consumes = APPLICATION_JSON_VALUE,
       produces = APPLICATION_JSON_VALUE
   )
   public ResponseEntity<Void> performOutgoingSettlement(
       @RequestHeader("Idempotency-Key") final String idempotencyKey,
-      @PathVariable final SettlementAccount account
+      @PathVariable final String accountId
   ) {
     // TODO: implement
 
-    this.logger.info("POST /accounts/{}/settlements { Idempotency-Key: {} }", account.getId(), idempotencyKey);
+    this.logger.info("POST /accounts/{}/settlements { Idempotency-Key: {} }", accountId, idempotencyKey);
 
     final HttpHeaders headers = new HttpHeaders();
     headers.setContentType(APPLICATION_JSON);
@@ -101,25 +99,25 @@ public class SettlementController {
    * <p>Called by the Connector to process and respond to an incoming message from the peer's
    * Settlement Engine.</p>
    *
-   * @param message A byte array of opaque data that was sent by the peer's Settlement Engine.
+   * @param message   A byte array of opaque data that was sent by the peer's Settlement Engine.
    *
-   * @param account The {@link SettlementAccount} as supplied by the Connector.
+   * @param accountId The account identifier as supplied by the Connector.
    *
    * @return A byte array representing the response message to be sent to the peer's Settlement Engine.
    */
   @RequestMapping(
-      path = "/accounts/{account}/messages",
+      path = "/accounts/{accountId}/messages",
       method = RequestMethod.POST,
       consumes = APPLICATION_OCTET_STREAM_VALUE,
       produces = APPLICATION_OCTET_STREAM_VALUE
   )
   public ResponseEntity<byte[]> handleIncomingMessage(
       @RequestBody final byte[] message,
-      @PathVariable final SettlementAccount account
+      @PathVariable final String accountId
   ) {
     // TODO: implement
 
-    this.logger.info("POST /accounts/{}/messages {}", account.getId(), message);
+    this.logger.info("POST /accounts/{}/messages {}", accountId, message);
 
     final HttpHeaders headers = new HttpHeaders();
     headers.setContentType(APPLICATION_OCTET_STREAM);
