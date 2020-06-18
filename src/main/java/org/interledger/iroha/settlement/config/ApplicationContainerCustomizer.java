@@ -19,7 +19,7 @@ public class ApplicationContainerCustomizer implements WebServerFactoryCustomize
     try {
       factory.setPort(Integer.parseInt(this.port));
     } catch (NumberFormatException err) {
-      this.logger.error("Invalid bind-port argument: {}", err.getMessage());
+      this.logger.error("Invalid bind-port: {}", err.getMessage());
       System.exit(1);
     }
   }
