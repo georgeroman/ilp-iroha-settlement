@@ -9,6 +9,7 @@ import jp.co.soramitsu.iroha.java.ErrorResponseException;
 import jp.co.soramitsu.iroha.java.IrohaAPI;
 import jp.co.soramitsu.iroha.java.QueryAPI;
 import jp.co.soramitsu.iroha.java.ValidationException;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +35,7 @@ public class SettlementEngine {
   @Value("${keypair-name}")
   private String keypairName;
 
+  @Getter
   @Value("${account-id}")
   private String accountId;
 
