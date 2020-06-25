@@ -1,0 +1,118 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:latest
+    networks:
+      - ilp-network
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    command: -c 'max_prepared_transactions=100'
+
+  iroha:
+    image: hyperledger/iroha:latest
+    ports:
+      - '50051:50051'
+    networks:
+      - ilp-network
+    environment:
+      - IROHA_POSTGRES_HOST=postgres
+      - IROHA_POSTGRES_USER=postgres
+      - IROHA_POSTGRES_PASSWORD=password
+      - KEY=node0
+    depends_on:
+      - postgres
+    volumes:
+      - ./iroha-data:/opt/iroha_data
+    tty: true
+
+  alice-redis:
+    image: redis:latest
+    networks:
+      - ilp-network
+
+  bob-redis:
+    image: redis:latest
+    networks:
+      - ilp-network
+    command: --port 6380
+
+  alice-node:
+    image: interledgerrs/ilp-node:latest
+    ports:
+      - '7770:7770'
+      - '7771:7771'
+    networks:
+      - ilp-network
+    depends_on:
+      - alice-redis
+    restart: on-failure
+    command: [
+        '--ilp_address=example.alice',
+        '--secret_seed=8852500887504328225458511465394229327394647958135038836332350604',
+        '--admin_auth_token=alice_auth_token',
+        '--redis_url=redis://alice-redis:6379',
+        '--http_bind_address=0.0.0.0:7770',
+        '--settlement_api_bind_address=0.0.0.0:7771'
+      ]
+
+  bob-node:
+    image: interledgerrs/ilp-node:latest
+    ports:
+      - '8770:8770'
+      - '8771:8771'
+    networks:
+      - ilp-network
+    depends_on:
+      - bob-redis
+    restart: on-failure
+    command: [
+        '--ilp_address=example.bob',
+        '--secret_seed=6178940982650927693716509273967164509826378124457201908738317682',
+        '--admin_auth_token=bob_auth_token',
+        '--redis_url=redis://bob-redis:6380',
+        '--http_bind_address=0.0.0.0:8770',
+        '--settlement_api_bind_address=0.0.0.0:8771'
+      ]
+
+  alice-settlement:
+    image: groman99/ilp-iroha-settlement:latest
+    ports:
+      - '3000:3000'
+    networks:
+      - ilp-network
+    depends_on:
+      - iroha
+    restart: on-failure
+    volumes:
+      - ./iroha-data:/opt/iroha_data
+    command: [
+        '--torii-url=http://iroha:50051',
+        '--connector-url=http://alice-node:7771',
+        '--account-id=admin@test',
+        '--keypair-name=/opt/iroha_data/admin@test'
+      ]
+
+  bob-settlement:
+    image: groman99/ilp-iroha-settlement:latest
+    ports:
+      - '3001:3001'
+    networks:
+      - ilp-network
+    depends_on:
+      - iroha
+    restart: on-failure
+    volumes:
+      - ./iroha-data:/opt/iroha_data
+    command: [
+        '--bind-port=3001',
+        '--torii-url=http://iroha:50051',
+        '--connector-url=http://bob-node:8771',
+        '--account-id=test@test',
+        '--keypair-name=/opt/iroha_data/test@test'
+      ]
+
+networks:
+  ilp-network:
+    driver: bridge
