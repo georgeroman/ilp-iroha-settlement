@@ -1,8 +1,14 @@
-FROM openjdk:8-jdk-alpine
+FROM alpine/git as clone
+WORKDIR /ilp
+RUN git clone https://github.com/georgeroman/ilp-iroha-settlement.git
 
-WORKDIR /opt/ilp-iroha-settlement
-COPY target/ilp-iroha-settlement-master-SNAPSHOT.jar /opt/ilp-iroha-settlement/settlement-engine.jar
+FROM maven:3.6-jdk-8-alpine as build
+WORKDIR /ilp
+COPY --from=clone /ilp/ilp-iroha-settlement /ilp
+RUN mvn package
 
+FROM openjdk:8-jre-alpine
+WORKDIR /ilp
+COPY --from=build /ilp/target/ilp-iroha-settlement-master-SNAPSHOT.jar /ilp
 EXPOSE 3000
-
-ENTRYPOINT ["java", "-jar", "settlement-engine.jar"]
+ENTRYPOINT ["java", "-jar", "ilp-iroha-settlement-master-SNAPSHOT.jar"]
