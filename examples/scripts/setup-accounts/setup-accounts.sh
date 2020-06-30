@@ -20,6 +20,7 @@ ilp-cli --node http://localhost:8770 accounts create bob \
     --ilp-over-http-incoming-token in_bob \
     --settle-to 0 &
 
+# This will trigger a SE setup account action on Alice's side
 printf "Adding Bob's account on Alice's node...\n"
 ilp-cli accounts create bob \
     --auth alice_auth_token \
@@ -36,6 +37,7 @@ ilp-cli accounts create bob \
     --settle-to 0 \
     --routing-relation Peer &
 
+# This will trigger a SE setup account action on Bob's side
 printf "Adding Alice's account on Bob's node...\n"
 ilp-cli --node http://localhost:8770 accounts create alice \
     --auth bob_auth_token \
