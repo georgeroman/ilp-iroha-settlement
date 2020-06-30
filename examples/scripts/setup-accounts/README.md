@@ -15,4 +15,5 @@ The settlement engines of the two ILP connectors will communicate via their ILP 
 
 The following diagram shows the sequence of actions corresponding to Alice's side for exchanging ledger identifiers.
 Bob's side is symmetric.
+
 ![Exchanging ledger identifiers](./images/exchange-ledger-ids.svg)
