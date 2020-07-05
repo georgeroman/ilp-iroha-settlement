@@ -2,12 +2,17 @@ package org.interledger.iroha.settlement;
 
 import static javax.xml.bind.DatatypeConverter.parseHexBinary;
 
+import org.interledger.iroha.settlement.IrohaException;
+
 import io.grpc.StatusRuntimeException;
 import iroha.protocol.QryResponses.AccountResponse;
+import iroha.protocol.TransactionOuterClass;
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3;
 import jp.co.soramitsu.iroha.java.ErrorResponseException;
 import jp.co.soramitsu.iroha.java.IrohaAPI;
 import jp.co.soramitsu.iroha.java.QueryAPI;
+import jp.co.soramitsu.iroha.java.Transaction;
+import jp.co.soramitsu.iroha.java.TransactionStatusObserver;
 import jp.co.soramitsu.iroha.java.ValidationException;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -16,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -36,10 +42,13 @@ public class SettlementEngine {
   private String keypairName;
 
   @Getter
-  @Value("${account-id}")
-  private String accountId;
+  @Value("${iroha-account-id}")
+  private String irohaAccountId;
 
-  private KeyPair accountKeypair;
+  @Value("${asset}")
+  private String asset;
+
+  private KeyPair irohaAccountKeypair;
 
   private IrohaAPI irohaApi;
   private QueryAPI queryApi;
@@ -58,7 +67,7 @@ public class SettlementEngine {
           Paths.get(this.keypairName + ".pub")
       ));
 
-      this.accountKeypair = Ed25519Sha3.keyPairFromBytes(
+      this.irohaAccountKeypair = Ed25519Sha3.keyPairFromBytes(
           parseHexBinary(privKey),
           parseHexBinary(pubKey)
       );
@@ -79,11 +88,11 @@ public class SettlementEngine {
       System.exit(1);
     }
 
-    this.queryApi = new QueryAPI(this.irohaApi, this.accountId, this.accountKeypair);
+    this.queryApi = new QueryAPI(this.irohaApi, this.irohaAccountId, this.irohaAccountKeypair);
 
-    // Make sure the provided account is correct by performing a simple query
+    // Make sure the provided Iroha account is correct by performing a simple query
     try {
-      this.queryApi.getAccount(this.accountId);
+      this.queryApi.getAccount(this.irohaAccountId);
     } catch (StatusRuntimeException err) {
       this.logger.error("Error querying Iroha: {}", err.getMessage());
       System.exit(1);
@@ -94,5 +103,30 @@ public class SettlementEngine {
       this.logger.error("Failed validation: {}", err.getMessage());
       System.exit(1);
     }
+  }
+
+  /**
+   * <p>Sends a TransferAsset command to Iroha for transferring a given asset amount to a recipient.</p>
+   *
+   * @param toIrohaAccountId The recipient of the asset transfer.
+   *
+   * @param amount           The amount that is to be transferred.
+   *
+   * @return
+   */
+  public void transfer(String toIrohaAccountId, BigDecimal amount) throws IrohaException {
+    TransactionStatusObserver txObserver = TransactionStatusObserver.builder()
+        .onError(err -> {
+          throw new IrohaException(err);
+        })
+        .build();
+
+    TransactionOuterClass.Transaction tx = Transaction.builder(this.irohaAccountId)
+        .transferAsset(this.irohaAccountId, toIrohaAccountId, this.asset, "Settlement", amount)
+        .sign(this.irohaAccountKeypair)
+        .build();
+
+    this.irohaApi.transaction(tx)
+        .blockingSubscribe(txObserver);
   }
 }

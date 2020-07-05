@@ -28,7 +28,7 @@ public class Application {
 
     boolean success = true;
 
-    List<String> requiredOptions = Arrays.asList("account-id", "keypair-name");
+    List<String> requiredOptions = Arrays.asList("iroha-account-id", "keypair-name", "asset");
     for (String option : requiredOptions) {
       if (!args.containsOption(option) || args.getOptionValues(option).size() != 1) {
         System.err.println(
@@ -48,17 +48,21 @@ public class Application {
     System.out.println("ilp-settlement-iroha [OPTION]...");
     System.out.println("Interledger settlement engine for Hyperledger Iroha");
     System.out.println("");
-    System.out.println("  --help             Display this help and exit");
-    System.out.println("  --bind-port        Port to listen to settlement requests");
-    System.out.println("                     (defaults to 3000)");
-    System.out.println("  --connector-url    Connector settlement API endpoint");
-    System.out.println("                     (defaults to http://127.0.0.1:7771)");
-    System.out.println("  --torii-url        Iroha Torii endpoint");
-    System.out.println("                     (defaults to http://127.0.0.1:50051)");
-    System.out.println("  --account-id       Iroha account id");
-    System.out.println("                     (required)");
-    System.out.println("  --keypair-name     Iroha account keypair files name (.pub and .priv)");
-    System.out.println("                     (required)");
+    System.out.println("  --help               Display this help and exit");
+    System.out.println("  --bind-port          Port to listen to settlement requests");
+    System.out.println("                       (defaults to 3000)");
+    System.out.println("  --connector-url      Connector settlement API endpoint");
+    System.out.println("                       (defaults to http://127.0.0.1:7771)");
+    System.out.println("  --torii-url          Iroha Torii endpoint");
+    System.out.println("                       (defaults to http://127.0.0.1:50051)");
+    System.out.println("  --iroha-account-id   Iroha account id");
+    System.out.println("                       (required)");
+    System.out.println("  --keypair-name       Iroha account keypair files name (.pub and .priv)");
+    System.out.println("                       (required)");
+    System.out.println("  --asset              The asset to be used for payments");
+    System.out.println("                       (required)");
+    System.out.println("  --asset-scale        The asset scale to be used for payments");
+    System.out.println("                       (defaults to 18)");
     System.out.println("");
     System.out.println("Please report issues at https://github.com/georgeroman/ilp-iroha-settlement/issues");
   }

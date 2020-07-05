@@ -1,3 +1,7 @@
+# Usage:
+# Run the following in the root directory of the repository:
+# docker build -t groman99/ilp-iroha-settlement .
+
 FROM alpine/git as clone
 WORKDIR /ilp
 RUN git clone https://github.com/georgeroman/ilp-iroha-settlement.git

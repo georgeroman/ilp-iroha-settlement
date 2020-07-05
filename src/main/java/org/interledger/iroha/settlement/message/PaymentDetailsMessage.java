@@ -12,5 +12,5 @@ import lombok.Setter;
 @NoArgsConstructor
 public class PaymentDetailsMessage {
   @Key
-  private String fromAccount;
+  private String irohaAccountId;
 }

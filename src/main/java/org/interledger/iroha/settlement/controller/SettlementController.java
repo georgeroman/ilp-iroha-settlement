@@ -5,9 +5,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
+import org.interledger.iroha.settlement.IrohaException;
 import org.interledger.iroha.settlement.SettlementEngine;
+import org.interledger.iroha.settlement.Util;
 import org.interledger.iroha.settlement.message.PaymentDetailsMessage;
 import org.interledger.iroha.settlement.model.SettlementAccount;
+import org.interledger.iroha.settlement.model.SettlementQuantity;
 import org.interledger.iroha.settlement.store.Store;
 
 import com.google.api.client.http.ByteArrayContent;
@@ -37,9 +40,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Map;
 
 @RestController
 public class SettlementController {
@@ -50,6 +55,9 @@ public class SettlementController {
 
   @Value("${connector-url:http://127.0.0.1:7771}")
   private String connectorUrl;
+
+  @Value("${asset-scale:18}")
+  private String assetScale;
 
   @Autowired
   private SettlementEngine settlementEngine;
@@ -71,17 +79,17 @@ public class SettlementController {
       consumes = APPLICATION_JSON_VALUE
   )
   public ResponseEntity<Void> setupAccount(
-      @RequestBody final SettlementAccount settlementAccount
+      @RequestBody SettlementAccount settlementAccount
   ) {
     this.logger.info("POST /accounts { id: {} }", settlementAccount.getId());
 
     // Create a request for payment details for the current ILP account
     PaymentDetailsMessage paymentDetailsRequest = new PaymentDetailsMessage(
-        this.settlementEngine.getAccountId()
+        this.settlementEngine.getIrohaAccountId()
     );
 
     // Only send request for payment details if we don't have that information
-    if (this.store.getPeerAccount(settlementAccount.getId()) == null) {
+    if (this.store.getPeerIrohaAccountId(settlementAccount.getId()) == null) {
       try {
         HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory(
             (HttpRequest request) -> {
@@ -113,22 +121,20 @@ public class SettlementController {
         PaymentDetailsMessage paymentDetailsResponse = request.execute().parseAs(PaymentDetailsMessage.class);
 
         // Save peer's Iroha account id
-        this.store.savePeerAccount(settlementAccount.getId(), paymentDetailsResponse.getFromAccount());
+        this.store.savePeerIrohaAccountId(settlementAccount.getId(), paymentDetailsResponse.getIrohaAccountId());
 
         this.logger.info(
-            "Got peer's Iroha account id ({}) corresponding to account {}",
-            paymentDetailsResponse.getFromAccount(),
+            "Got peer's Iroha account id ({}) corresponding to settlement account {}",
+            paymentDetailsResponse.getIrohaAccountId(),
             settlementAccount.getId()
         );
 
         return new ResponseEntity<>(HttpStatus.CREATED); 
       } catch (MalformedURLException err) {
         this.logger.error("Invalid connector-url: {}", err.getMessage());
-
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
       } catch (IOException err) {
         this.logger.error("Error while handling payment details: {}", err.getMessage());
-
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
       }
     } else {
@@ -148,7 +154,7 @@ public class SettlementController {
       method = RequestMethod.DELETE
   )
   public ResponseEntity<Void> deleteAccount(
-      @PathVariable final String settlementAccountId
+      @PathVariable String settlementAccountId
   ) {
     this.logger.info("DELETE /accounts/{}", settlementAccountId);
 
@@ -174,17 +180,59 @@ public class SettlementController {
       produces = APPLICATION_JSON_VALUE
   )
   public ResponseEntity<Void> performOutgoingSettlement(
-      @RequestHeader("Idempotency-Key") final String idempotencyKey,
-      @PathVariable final String settlementAccountId
+      @RequestHeader("Idempotency-Key") String idempotencyKey,
+      @RequestBody SettlementQuantity quantity,
+      @PathVariable String settlementAccountId
   ) {
     this.logger.info("POST /accounts/{}/settlements { Idempotency-Key: {} }", settlementAccountId, idempotencyKey);
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(APPLICATION_JSON);
 
-    // TODO: implement
+    try {
+      int fromScale = quantity.getScale();
+      int toScale = Integer.parseInt(this.assetScale);
 
-    return new ResponseEntity<>(headers, HttpStatus.CREATED);
+      BigDecimal leftover = this.store.getLeftover(settlementAccountId);
+
+      // Scale the amount (together with any pre-existing leftovers)
+      Map.Entry<BigDecimal, BigDecimal> scalingResult = Util.scaleWithPrecisionLoss(
+          quantity.getAmount().add(leftover),
+          fromScale,
+          toScale
+      );
+      BigDecimal scaledAmount = scalingResult.getKey();
+
+      String peerIrohaAccountId = this.store.getPeerIrohaAccountId(settlementAccountId);
+      if (peerIrohaAccountId == null) {
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+
+      this.logger.info(
+          "Performing settlement on settlement account {} "
+          + "(from Iroha account {} to Iroha account {}) for an amount of {}",
+          settlementAccountId,
+          this.settlementEngine.getIrohaAccountId(),
+          peerIrohaAccountId,
+          scaledAmount.toString()
+      );
+
+      // Perform the actual ledger settlement
+      this.settlementEngine.transfer(peerIrohaAccountId, scaledAmount);
+
+      // Save any leftovers due to precision loss
+      BigDecimal precisionLoss = scalingResult.getValue();
+      this.store.saveLeftover(settlementAccountId, precisionLoss);
+
+      return new ResponseEntity<>(headers, HttpStatus.CREATED);
+    } catch (NumberFormatException err) {
+      // TODO: This should not be handled here
+      this.logger.error("Invalid asset-scale: {}", err.getMessage());
+      return new ResponseEntity<>(headers, HttpStatus.INTERNAL_SERVER_ERROR);
+    } catch (IrohaException err) {
+      this.logger.error("Iroha transaction failed: {}", err.getMessage());
+      return new ResponseEntity<>(headers, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   /**
@@ -204,8 +252,8 @@ public class SettlementController {
       produces = APPLICATION_OCTET_STREAM_VALUE
   )
   public ResponseEntity<byte[]> handleIncomingMessage(
-      @RequestBody final byte[] message,
-      @PathVariable final String settlementAccountId
+      @RequestBody byte[] message,
+      @PathVariable String settlementAccountId
   ) {
     String messageString = new String(message, StandardCharsets.UTF_8);
 
@@ -218,16 +266,16 @@ public class SettlementController {
       PaymentDetailsMessage paymentDetailsRequest = JSON_FACTORY.fromString(messageString, PaymentDetailsMessage.class);
 
       // Save peer's Iroha account id
-      this.store.savePeerAccount(settlementAccountId, paymentDetailsRequest.getFromAccount());
+      this.store.savePeerIrohaAccountId(settlementAccountId, paymentDetailsRequest.getIrohaAccountId());
 
       this.logger.info(
-          "Got peer's Iroha account id ({}) corresponding to account {}",
-          paymentDetailsRequest.getFromAccount(),
+          "Got peer's Iroha account id ({}) corresponding to settlement account {}",
+          paymentDetailsRequest.getIrohaAccountId(),
           settlementAccountId
       );
 
       PaymentDetailsMessage paymentDetailsResponse = new PaymentDetailsMessage(
-          this.settlementEngine.getAccountId()
+          this.settlementEngine.getIrohaAccountId()
       );
 
       // Respond with our own Iroha account id
@@ -237,7 +285,6 @@ public class SettlementController {
     } catch (IOException err) {
       this.logger.error("Invalid payment details message: {}", err.getMessage());
       this.logger.info("Only payment details messages are accepted via /accounts/:id/messages");
-
       return new ResponseEntity<>(headers, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

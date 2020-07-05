@@ -90,8 +90,10 @@ services:
     command: [
         '--torii-url=http://iroha:50051',
         '--connector-url=http://alice-node:7771',
-        '--account-id=admin@test',
-        '--keypair-name=/opt/iroha_data/admin@test'
+        '--iroha-account-id=admin@test',
+        '--keypair-name=/opt/iroha_data/admin@test',
+        '--asset=coin#test',
+        '--asset-scale=2'
       ]
 
   bob-settlement:
@@ -109,8 +111,10 @@ services:
         '--bind-port=3001',
         '--torii-url=http://iroha:50051',
         '--connector-url=http://bob-node:8771',
-        '--account-id=test@test',
-        '--keypair-name=/opt/iroha_data/test@test'
+        '--iroha-account-id=test@test',
+        '--keypair-name=/opt/iroha_data/test@test',
+        '--asset=coin#test',
+        '--asset-scale=2'
       ]
 
 networks:
