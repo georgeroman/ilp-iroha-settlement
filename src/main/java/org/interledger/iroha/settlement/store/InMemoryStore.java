@@ -35,4 +35,15 @@ public class InMemoryStore implements Store {
   public BigDecimal getLeftover(String settlementAccountId) {
     return this.leftovers.getOrDefault(settlementAccountId, BigDecimal.ZERO);
   }
+
+  @Override
+  public boolean existsSettlementAccount(String settlementAccountId) {
+    return this.settlementAccounts.containsKey(settlementAccountId);
+  }
+
+  @Override
+  public void deleteSettlementAccount(String settlementAccountId) {
+    this.settlementAccounts.remove(settlementAccountId);
+    this.leftovers.remove(settlementAccountId);
+  }
 }

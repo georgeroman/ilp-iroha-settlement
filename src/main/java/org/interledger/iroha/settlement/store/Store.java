@@ -43,4 +43,23 @@ public interface Store {
    * @return A {@link BigDecimal} representing the currency leftovers.
    */
   BigDecimal getLeftover(String settlementAccountId);
+
+  /**
+   * <p>Checks whether a given settlement account was registered within the store.</p>
+   *
+   * @param settlementAccountId The settlement account.
+   *
+   * @return True if the settlement account exists, false otherwise.
+   */
+  boolean existsSettlementAccount(String settlementAccountId);
+
+  /**
+   * <p>Deletes all information corresponding to the given settlement account.
+   * The settlement account is not mandatory to already exist in the store.</p>
+   *
+   * @param settlementAccountId The settlement account.
+   *
+   * @return
+   */
+  void deleteSettlementAccount(String settlementAccountId);
 }

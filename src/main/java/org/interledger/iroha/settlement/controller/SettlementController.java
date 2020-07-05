@@ -158,7 +158,12 @@ public class SettlementController {
   ) {
     this.logger.info("DELETE /accounts/{}", settlementAccountId);
 
-    // TODO: implement
+    // Require the settlement account to already exist in the store
+    if (!this.store.existsSettlementAccount(settlementAccountId)) {
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    this.store.deleteSettlementAccount(settlementAccountId);
 
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
