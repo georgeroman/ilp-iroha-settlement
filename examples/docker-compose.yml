@@ -20,12 +20,11 @@ services:
       - IROHA_POSTGRES_HOST=postgres
       - IROHA_POSTGRES_USER=postgres
       - IROHA_POSTGRES_PASSWORD=password
-      - KEY=node0
+      - KEY=node
     depends_on:
       - postgres
     volumes:
       - ./iroha-data:/opt/iroha_data
-    tty: true
 
   alice-redis:
     image: redis:latest
@@ -90,8 +89,8 @@ services:
     command: [
         '--torii-url=http://iroha:50051',
         '--connector-url=http://alice-node:7771',
-        '--iroha-account-id=admin@test',
-        '--keypair-name=/opt/iroha_data/admin@test',
+        '--iroha-account-id=alice@test',
+        '--keypair-name=/opt/iroha_data/alice@test',
         '--asset=coin#test',
         '--asset-scale=2'
       ]
@@ -111,8 +110,8 @@ services:
         '--bind-port=3001',
         '--torii-url=http://iroha:50051',
         '--connector-url=http://bob-node:8771',
-        '--iroha-account-id=test@test',
-        '--keypair-name=/opt/iroha_data/test@test',
+        '--iroha-account-id=bob@test',
+        '--keypair-name=/opt/iroha_data/bob@test',
         '--asset=coin#test',
         '--asset-scale=2'
       ]

@@ -87,27 +87,27 @@
                        },
                        {
                           "createAccount":{
-                             "accountName":"admin",
+                             "accountName":"alice",
                              "domainId":"test",
                              "publicKey":"313a07e6384776ed95447710d15e59148473ccfc052a681317a72a69f2a49910"
                           }
                        },
                        {
                           "createAccount":{
-                             "accountName":"test",
+                             "accountName":"bob",
                              "domainId":"test",
                              "publicKey":"716fe505f69f18511a1b083915aa9ff73ef36e6688199f3959750db38b8f4bfc"
                           }
                        },
                        {
                           "appendRole":{
-                             "accountId":"admin@test",
+                             "accountId":"alice@test",
                              "roleName":"admin"
                           }
                        },
                        {
                           "appendRole":{
-                             "accountId":"admin@test",
+                             "accountId":"alice@test",
                              "roleName":"money_creator"
                           }
                        }

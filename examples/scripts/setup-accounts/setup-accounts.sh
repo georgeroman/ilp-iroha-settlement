@@ -1,28 +1,32 @@
 #!/bin/bash
 
 printf "Adding Alice's account...\n"
-ilp-cli accounts create alice \
+docker run --rm --network examples_ilp-network interledgerrs/ilp-cli:latest \
+    --node http://alice-node:7770 accounts create alice \
     --auth alice_auth_token \
     --ilp-address example.alice \
     --asset-code "coin#test" \
     --asset-scale 2 \
     --max-packet-amount 100 \
     --ilp-over-http-incoming-token in_alice \
-    --settle-to 0 &
+    --settle-to 0
 
 printf "Adding Bob's Account...\n"
-ilp-cli --node http://localhost:8770 accounts create bob \
+docker run --rm --network examples_ilp-network interledgerrs/ilp-cli:latest \
+    --node http://bob-node:8770 accounts create bob \
     --auth bob_auth_token \
     --ilp-address example.bob \
     --asset-code "coin#test" \
     --asset-scale 2 \
     --max-packet-amount 100 \
     --ilp-over-http-incoming-token in_bob \
-    --settle-to 0 &
+    --settle-to 0
+
+printf "Adding Bob's account on Alice's node and Alice's account on Bob's node...\n"
 
 # This will trigger a SE setup account action on Alice's side
-printf "Adding Bob's account on Alice's node...\n"
-ilp-cli accounts create bob \
+docker run --rm --network examples_ilp-network interledgerrs/ilp-cli:latest \
+    --node http://alice-node:7770 accounts create bob \
     --auth alice_auth_token \
     --ilp-address example.bob \
     --asset-code "coin#test" \
@@ -38,8 +42,8 @@ ilp-cli accounts create bob \
     --routing-relation Peer &
 
 # This will trigger a SE setup account action on Bob's side
-printf "Adding Alice's account on Bob's node...\n"
-ilp-cli --node http://localhost:8770 accounts create alice \
+docker run --rm --network examples_ilp-network interledgerrs/ilp-cli:latest \
+    --node http://bob-node:8770 accounts create alice \
     --auth bob_auth_token \
     --ilp-address example.alice \
     --asset-code "coin#test" \
@@ -52,3 +56,5 @@ ilp-cli --node http://localhost:8770 accounts create alice \
     --settle-threshold 500 \
     --settle-to 0 \
     --routing-relation Peer &
+
+sleep 5

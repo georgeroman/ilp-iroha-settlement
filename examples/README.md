@@ -2,9 +2,14 @@
 
 Here you can find various examples of `ilp-iroha-settlement`'s functionality:
 - setup ILP accounts within the settlement engine and exchange ledger identifiers
+- settle ILP payments on the underlying Iroha ledgers
+
+All of these examples consist of interactions with ILP connectors, which will trigger corresponding actions on the settlement engine.
+Watch out the logs for `alice-settlement` and `bob-settlement` entries.
 
 ### Prerequisites
 
-The required setup is powered by the `docker-compose.yml` file, which sets up Iroha networks, ILP nodes and settlement engines all within a single docker network. Start it up with `docker-compose up`.
+You must have `docker` and `docker-compose` installed in order to run these examples.
 
-In order to be able to run the example scripts, you must have `ilp-cli` installed (you can find instructions for downloading it [here](https://github.com/interledger-rs/interledger-rs)) and available.
+The required setup is powered by the `docker-compose.yml` file, which sets up Iroha networks, ILP nodes and settlement engines all within a single docker network.
+Start it up with `docker-compose up`.

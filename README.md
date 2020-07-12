@@ -17,3 +17,7 @@ You can also build directly from source with Maven:
 ```bash
 mvn install
 ```
+
+## Examples
+
+Several examples showcasing various functionalities of the settlement engine can be found in the [`examples`](https://github.com/georgeroman/ilp-iroha-settlement/tree/master/examples) directory.
