@@ -21,6 +21,7 @@ public class Application {
   }
 
   private static void handleArgs(ApplicationArguments args) {
+    // Show help if the user requested
     if (args.containsOption("help")) {
       displayHelp();
       System.exit(0);
@@ -28,7 +29,9 @@ public class Application {
 
     boolean success = true;
 
-    List<String> requiredOptions = Arrays.asList("iroha-account-id", "keypair-name", "asset");
+    // Make sure all required arguments are provided
+    // TODO: Also validate their format in order to stay clear of runtime errors
+    List<String> requiredOptions = Arrays.asList("iroha-account-id", "keypair-name", "asset-id");
     for (String option : requiredOptions) {
       if (!args.containsOption(option) || args.getOptionValues(option).size() != 1) {
         System.err.println(
@@ -38,6 +41,7 @@ public class Application {
       }
     }
 
+    // Show help if the provided arguments are wrong
     if (!success) {
       displayHelp();
       System.exit(1);
@@ -59,7 +63,7 @@ public class Application {
     System.out.println("                       (required)");
     System.out.println("  --keypair-name       Iroha account keypair files name (.pub and .priv)");
     System.out.println("                       (required)");
-    System.out.println("  --asset              The asset to be used for payments");
+    System.out.println("  --asset-id           The asset to be used for payments");
     System.out.println("                       (required)");
     System.out.println("  --asset-scale        The asset scale to be used for payments");
     System.out.println("                       (defaults to 18)");

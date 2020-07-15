@@ -1,10 +1,39 @@
 package org.interledger.iroha.settlement.store;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public interface Store {
   /**
-   * <p>Saves the peer's Iroha account id for a given settlement account.</p>
+   * <p>Retrieves the settlement account associated with the given Iroha account id.</p>
+   *
+   * @param peerIrohaAccountId The Iroha account id of the peer.
+   *
+   * @return The corresponding settlement account id if any, null otherwise.
+   */
+  String getSettlementAccountId(String peerIrohaAccountId);
+
+  /**
+   * <p>Checks whether a given settlement account was registered within the store.</p>
+   *
+   * @param settlementAccountId The settlement account.
+   *
+   * @return True if the settlement account exists, false otherwise.
+   */
+  boolean existsSettlementAccount(String settlementAccountId);
+
+  /**
+   * <p>Deletes all information corresponding to the given settlement account.
+   * The settlement account is not mandatory to already exist in the store.</p>
+   *
+   * @param settlementAccountId The settlement account.
+   *
+   * @return
+   */
+  void deleteSettlementAccount(String settlementAccountId);
+
+  /**
+   * <p>Sets the peer's Iroha account id for a given settlement account.</p>
    *
    * @param settlementAccountId The settlement account.
    *
@@ -45,21 +74,43 @@ public interface Store {
   BigDecimal getLeftover(String settlementAccountId);
 
   /**
-   * <p>Checks whether a given settlement account was registered within the store.</p>
+   * <p>Marks a transaction as checked for settlement.</p>
    *
-   * @param settlementAccountId The settlement account.
-   *
-   * @return True if the settlement account exists, false otherwise.
-   */
-  boolean existsSettlementAccount(String settlementAccountId);
-
-  /**
-   * <p>Deletes all information corresponding to the given settlement account.
-   * The settlement account is not mandatory to already exist in the store.</p>
-   *
-   * @param settlementAccountId The settlement account.
+   * @param txHash The hash of the transaction to mark as checked.
    *
    * @return
    */
-  void deleteSettlementAccount(String settlementAccountId);
+  void saveCheckedTx(String txHash);
+
+  /**
+   * <p>Marks a transaction as uncheked for settlement.</p>
+   *
+   * @param txHash The hash of the transaction to mark as unchecked.
+   *
+   * @return
+   */
+  void saveUncheckedTx(String txHash);
+
+  /**
+   * <p>Retrieves the last transactions that was checked for settlement.</p>
+   *
+   * @return The transaction hash of the last checked transaction if any, null otherwise.
+   */
+  String getLastCheckedTxHash();
+
+  /**
+   * <p>Retrieves all transactions that were previously marked as unchecked for settlement.</p>
+   *
+   * @return A {@link List} consisting of all unchecked transactions' hashes.
+   */
+  List<String> getUncheckedTxHashes();
+
+  /**
+   * <p>Checks whether the given transaction was previously checked for settlements.</p>
+   *
+   * @param txHash The hash of the transaction to check.
+   *
+   * @return True if the transaction was already checked, false otherwise.
+   */
+  boolean wasTxChecked(String txHash);
 }

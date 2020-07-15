@@ -8,6 +8,7 @@ import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 import org.interledger.iroha.settlement.IrohaException;
 import org.interledger.iroha.settlement.SettlementEngine;
 import org.interledger.iroha.settlement.Util;
+import org.interledger.iroha.settlement.config.DefaultArgumentValues;
 import org.interledger.iroha.settlement.message.PaymentDetailsMessage;
 import org.interledger.iroha.settlement.model.SettlementAccount;
 import org.interledger.iroha.settlement.model.SettlementQuantity;
@@ -50,14 +51,14 @@ import java.util.Map;
 public class SettlementController {
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-  private static HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
-  private static JsonFactory JSON_FACTORY = new JacksonFactory();
+  private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
+  private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 
-  @Value("${connector-url:http://127.0.0.1:7771}")
-  private String connectorUrl;
-
-  @Value("${asset-scale:18}")
+  @Value("${asset-scale:" + DefaultArgumentValues.ASSET_SCALE + "}")
   private String assetScale;
+
+  @Value("${connector-url:" + DefaultArgumentValues.CONNECTOR_URL + "}")
+  private String connectorUrl;
 
   @Autowired
   private SettlementEngine settlementEngine;
@@ -91,6 +92,13 @@ public class SettlementController {
     // Only send request for payment details if we don't have that information
     if (this.store.getPeerIrohaAccountId(settlementAccount.getId()) == null) {
       try {
+        // TODO: Find a way to abstract away the HTTP request/response handling parts
+
+        this.logger.info(
+            "Serialized PaymentDetailsMessage object to be sent to peer: "
+            + JSON_FACTORY.toString(paymentDetailsRequest)
+        );
+
         HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory(
             (HttpRequest request) -> {
                 request.setParser(new JsonObjectParser(JSON_FACTORY));
@@ -120,21 +128,27 @@ public class SettlementController {
         // Send the payment details request and wait for a corresponding response
         PaymentDetailsMessage paymentDetailsResponse = request.execute().parseAs(PaymentDetailsMessage.class);
 
-        // Save peer's Iroha account id
-        this.store.savePeerIrohaAccountId(settlementAccount.getId(), paymentDetailsResponse.getIrohaAccountId());
-
         this.logger.info(
             "Got peer's Iroha account id ({}) corresponding to settlement account {}",
             paymentDetailsResponse.getIrohaAccountId(),
             settlementAccount.getId()
         );
 
+        // Save peer's Iroha account id
+        this.store.savePeerIrohaAccountId(settlementAccount.getId(), paymentDetailsResponse.getIrohaAccountId());
+
         return new ResponseEntity<>(HttpStatus.CREATED); 
       } catch (MalformedURLException err) {
+        // Once this happens, it will always happen
         this.logger.error("Invalid connector-url: {}", err.getMessage());
+        this.logger.info("Restart the settlement engine with a valid connector-url value");
+
+        // Fatal error
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
       } catch (IOException err) {
         this.logger.error("Error while handling payment details: {}", err.getMessage());
+
+        // Fatal error
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
       }
     } else {
@@ -195,21 +209,22 @@ public class SettlementController {
     headers.setContentType(APPLICATION_JSON);
 
     try {
+      // We need to convert from the scale the connector sent us to our own scale
       int fromScale = quantity.getScale();
       int toScale = Integer.parseInt(this.assetScale);
 
-      BigDecimal leftover = this.store.getLeftover(settlementAccountId);
-
       // Scale the amount (together with any pre-existing leftovers)
       Map.Entry<BigDecimal, BigDecimal> scalingResult = Util.scaleWithPrecisionLoss(
-          quantity.getAmount().add(leftover),
+          quantity.getAmount().add(this.store.getLeftover(settlementAccountId)),
           fromScale,
           toScale
       );
       BigDecimal scaledAmount = scalingResult.getKey();
 
+      // Retrieve the peer's Iroha account id corresponding to the current settlement account
       String peerIrohaAccountId = this.store.getPeerIrohaAccountId(settlementAccountId);
       if (peerIrohaAccountId == null) {
+        // Fatal error
         return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
       }
 
@@ -231,11 +246,16 @@ public class SettlementController {
 
       return new ResponseEntity<>(headers, HttpStatus.CREATED);
     } catch (NumberFormatException err) {
-      // TODO: This should not be handled here
+      // Once this happens, it will always happen
       this.logger.error("Invalid asset-scale: {}", err.getMessage());
+      this.logger.info("Restart the settlement engine with a valid asset-scale value");
+
+      // Fatal error
       return new ResponseEntity<>(headers, HttpStatus.INTERNAL_SERVER_ERROR);
     } catch (IrohaException err) {
-      this.logger.error("Iroha transaction failed: {}", err.getMessage());
+      this.logger.error("Could not send transfer command to Iroha: {}", err.getMessage());
+
+      // Fatal error
       return new ResponseEntity<>(headers, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -283,6 +303,10 @@ public class SettlementController {
           this.settlementEngine.getIrohaAccountId()
       );
 
+      this.logger.info(
+          "Serialized PaymentDetailsMessage object to be sent to peer: " + JSON_FACTORY.toString(paymentDetailsResponse)
+      );
+
       // Respond with our own Iroha account id
       return new ResponseEntity<>(
           JSON_FACTORY.toString(paymentDetailsResponse).getBytes(), headers, HttpStatus.CREATED
@@ -290,6 +314,8 @@ public class SettlementController {
     } catch (IOException err) {
       this.logger.error("Invalid payment details message: {}", err.getMessage());
       this.logger.info("Only payment details messages are accepted via /accounts/:id/messages");
+
+      // Fatal error
       return new ResponseEntity<>(headers, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

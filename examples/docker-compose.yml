@@ -91,7 +91,7 @@ services:
         '--connector-url=http://alice-node:7771',
         '--iroha-account-id=alice@test',
         '--keypair-name=/opt/iroha_data/alice@test',
-        '--asset=coin#test',
+        '--asset-id=coin#test',
         '--asset-scale=2'
       ]
 
@@ -112,7 +112,7 @@ services:
         '--connector-url=http://bob-node:8771',
         '--iroha-account-id=bob@test',
         '--keypair-name=/opt/iroha_data/bob@test',
-        '--asset=coin#test',
+        '--asset-id=coin#test',
         '--asset-scale=2'
       ]
 

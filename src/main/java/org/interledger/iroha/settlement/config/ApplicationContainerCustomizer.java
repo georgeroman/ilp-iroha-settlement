@@ -11,15 +11,17 @@ import org.springframework.stereotype.Component;
 public class ApplicationContainerCustomizer implements WebServerFactoryCustomizer<ConfigurableWebServerFactory> {
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-  @Value("${bind-port:3000}")
-  private String port;
+  @Value("${bind-port:" + DefaultArgumentValues.BIND_PORT + "}")
+  private String bindPort;
 
   @Override
   public void customize(ConfigurableWebServerFactory factory) {
     try {
-      factory.setPort(Integer.parseInt(this.port));
+      factory.setPort(Integer.parseInt(this.bindPort));
     } catch (NumberFormatException err) {
       this.logger.error("Invalid bind-port: {}", err.getMessage());
+
+      // Fatal error, so we exit
       System.exit(1);
     }
   }
