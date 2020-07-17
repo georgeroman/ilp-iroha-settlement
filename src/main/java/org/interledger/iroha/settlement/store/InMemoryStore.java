@@ -12,12 +12,14 @@ import java.util.Map;
 public class InMemoryStore implements Store {
   private Map<String, String> settlementAccounts;
   private Map<String, BigDecimal> leftovers;
+  private Map<String, Integer> requestStatuses;
   private List<String> checkedTxs;
   private List<String> uncheckedTxs;
 
   public InMemoryStore() {
     this.settlementAccounts = new HashMap<>();
     this.leftovers = new HashMap<>();
+    this.requestStatuses = new HashMap<>();
     this.checkedTxs = new ArrayList<>();
     this.uncheckedTxs = new ArrayList<>();
   }
@@ -88,5 +90,15 @@ public class InMemoryStore implements Store {
   @Override
   public boolean wasTxChecked(String txHash) {
     return this.checkedTxs.contains(txHash); 
+  }
+
+  @Override
+  public void saveRequestStatus(String idempotencyKey, Integer status) {
+    this.requestStatuses.put(idempotencyKey, status);
+  }
+
+  @Override
+  public Integer getRequestStatus(String idempotencyKey) {
+    return this.requestStatuses.get(idempotencyKey);
   }
 }

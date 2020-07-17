@@ -225,7 +225,7 @@ public class SettlementController {
       String peerIrohaAccountId = this.store.getPeerIrohaAccountId(settlementAccountId);
       if (peerIrohaAccountId == null) {
         // Fatal error
-        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(headers, HttpStatus.INTERNAL_SERVER_ERROR);
       }
 
       this.logger.info(
@@ -237,12 +237,26 @@ public class SettlementController {
           scaledAmount.toString()
       );
 
-      // Perform the actual ledger settlement
-      this.settlementEngine.transfer(peerIrohaAccountId, scaledAmount);
+      // Only allow a single peer at a time to access this part of the code
+      // in order to properly handle idempotent requests
+      synchronized(this.store) {
+        Integer requestStatus = this.store.getRequestStatus(idempotencyKey);
+        if (requestStatus != null) {
+          this.logger.info("Skipping the request as it was already processed before");
 
-      // Save any leftovers due to precision loss
-      BigDecimal precisionLoss = scalingResult.getValue();
-      this.store.saveLeftover(settlementAccountId, precisionLoss);
+          return new ResponseEntity<>(headers, HttpStatus.resolve(requestStatus));
+        } else {
+          // Perform the actual ledger settlement
+          this.settlementEngine.transfer(peerIrohaAccountId, scaledAmount);
+
+          // Save any leftovers due to precision loss
+          BigDecimal precisionLoss = scalingResult.getValue();
+          this.store.saveLeftover(settlementAccountId, precisionLoss);
+
+          // Persist the status of the request
+          this.store.saveRequestStatus(idempotencyKey, HttpStatus.CREATED.value());
+        }
+      }
 
       return new ResponseEntity<>(headers, HttpStatus.CREATED);
     } catch (NumberFormatException err) {

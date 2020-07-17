@@ -284,8 +284,9 @@ public class SettlementEngine {
                 );
 
                 // Notify the connector
-                // We are not interested in the response as exponential backoff will automatically handle failures
-                request.execute();
+                HttpResponse response = request.execute();
+
+                this.logger.info("The connector responded with: {}", response.getStatusMessage());
               } catch (NumberFormatException err) {
                 this.logger.error("Invalid asset-scale: {}", err.getMessage());
 

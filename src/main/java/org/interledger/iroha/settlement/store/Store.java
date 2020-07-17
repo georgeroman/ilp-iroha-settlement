@@ -113,4 +113,25 @@ public interface Store {
    * @return True if the transaction was already checked, false otherwise.
    */
   boolean wasTxChecked(String txHash);
+
+  /**
+   * <p>Saves the HTTP status of the request identified by the given idempotency key.</p>
+   *
+   * @param idempotencyKey The idempotency key identifying the request.
+   *
+   * @param status         The HTTP status code of the request.
+   *
+   * @return
+   */
+  void saveRequestStatus(String idempotencyKey, Integer status);
+
+  /**
+   * <p>Retrieves the status of the already processed request that is identified by the given idempotency key.</p>
+   *
+   * @param idempotencyKey The idempotency key identifying the request we're interested in.
+   *
+   * @return The HTTP status code of the request, or null if it wasn't processed before.
+   *
+   */
+  Integer getRequestStatus(String idempotencyKey);
 }
