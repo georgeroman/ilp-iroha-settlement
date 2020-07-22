@@ -242,7 +242,7 @@ public class SettlementController {
       synchronized(this.store) {
         Integer requestStatus = this.store.getRequestStatus(idempotencyKey);
         if (requestStatus != null) {
-          this.logger.info("Skipping the request as it was already processed before");
+          this.logger.info("Skipping the settlement request as it was already processed before");
 
           return new ResponseEntity<>(headers, HttpStatus.resolve(requestStatus));
         } else {

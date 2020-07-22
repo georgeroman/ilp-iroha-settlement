@@ -10,6 +10,15 @@ services:
       - POSTGRES_PASSWORD=password
     command: -c 'max_prepared_transactions=100'
 
+  postgres1:
+    image: postgres:latest
+    networks:
+      - ilp-network
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    command: -p 5433 -c 'max_prepared_transactions=100'
+
   iroha0:
     image: hyperledger/iroha:latest
     ports:
@@ -27,6 +36,23 @@ services:
     volumes:
       - ./iroha0-data:/opt/iroha_data
 
+  iroha1:
+    image: hyperledger/iroha:latest
+    ports:
+      - '50052:50052'
+    networks:
+      - ilp-network
+    environment:
+      - IROHA_POSTGRES_HOST=postgres1
+      - IROHA_POSTGRES_PORT=5433
+      - IROHA_POSTGRES_USER=postgres
+      - IROHA_POSTGRES_PASSWORD=password
+      - KEY=node1
+    depends_on:
+      - postgres1
+    volumes:
+      - ./iroha1-data:/opt/iroha_data
+
   alice-redis:
     image: redis:latest
     networks:
@@ -38,8 +64,17 @@ services:
       - ilp-network
     command: --port 6380
 
+  charlie-redis:
+    image: redis:latest
+    networks:
+      - ilp-network
+    command: --port 6381
+
   alice-node:
     image: interledgerrs/ilp-node:latest
+    ports:
+      - '7770:7770'
+      - '7771:7771'
     networks:
       - ilp-network
     depends_on:
@@ -56,6 +91,9 @@ services:
 
   bob-node:
     image: interledgerrs/ilp-node:latest
+    ports:
+      - '8770:8770'
+      - '8771:8771'
     networks:
       - ilp-network
     depends_on:
@@ -70,8 +108,28 @@ services:
         '--settlement_api_bind_address=0.0.0.0:8771'
       ]
 
+  charlie-node:
+    image: interledgerrs/ilp-node:latest
+    ports:
+      - '9770:9770'
+      - '9771:9771'
+    networks:
+      - ilp-network
+    depends_on:
+      - charlie-redis
+    restart: on-failure
+    command: [
+        '--secret_seed=1232362131122139900555208458637022875563691455429373719368053354',
+        '--admin_auth_token=charlie_auth_token',
+        '--redis_url=redis://charlie-redis:6381',
+        '--http_bind_address=0.0.0.0:9770',
+        '--settlement_api_bind_address=0.0.0.0:9771'
+      ]
+
   alice-settlement:
     image: groman99/ilp-iroha-settlement:latest
+    ports:
+      - '3000:3000'
     networks:
       - ilp-network
     depends_on:
@@ -88,8 +146,10 @@ services:
         '--asset-scale=2'
       ]
 
-  bob-settlement:
+  bob-settlement-0:
     image: groman99/ilp-iroha-settlement:latest
+    ports:
+      - '3001:3001'
     networks:
       - ilp-network
     depends_on:
@@ -104,6 +164,48 @@ services:
         '--iroha-account-id=bob@test',
         '--keypair-name=/opt/iroha_data/bob@test',
         '--asset-id=coin0#test',
+        '--asset-scale=2'
+      ]
+
+  bob-settlement-1:
+    image: groman99/ilp-iroha-settlement:latest
+    ports:
+      - '3002:3002'
+    networks:
+      - ilp-network
+    depends_on:
+      - iroha1
+    restart: on-failure
+    volumes:
+      - ./iroha1-data:/opt/iroha_data
+    command: [
+        '--bind-port=3002',
+        '--torii-url=http://iroha1:50052',
+        '--connector-url=http://bob-node:8771',
+        '--iroha-account-id=bob@test',
+        '--keypair-name=/opt/iroha_data/bob@test',
+        '--asset-id=coin1#test',
+        '--asset-scale=2'
+      ]
+
+  charlie-settlement:
+    image: groman99/ilp-iroha-settlement:latest
+    ports:
+      - '3003:3003'
+    networks:
+      - ilp-network
+    depends_on:
+      - iroha1
+    restart: on-failure
+    volumes:
+      - ./iroha1-data:/opt/iroha_data
+    command: [
+        '--bind-port=3003',
+        '--torii-url=http://iroha1:50052',
+        '--connector-url=http://charlie-node:9771',
+        '--iroha-account-id=charlie@test',
+        '--keypair-name=/opt/iroha_data/charlie@test',
+        '--asset-id=coin1#test',
         '--asset-scale=2'
       ]
 

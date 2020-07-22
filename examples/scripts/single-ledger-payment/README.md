@@ -1,18 +1,11 @@
-## ILP Single Ledger Payment
+## single-ledger-payment
 
-The ILP protocol makes a very clear distinction between clearing and settlement.
-ILP Prepare/Fulfill messages operate at the clearing level and they adjust the balances of the peers without performing any settlement on the underlying ledger.
-Once these unsettled balances reach a pre-established threshold, they need to be settled.
-The connector, which keeps track of the peers balances, is responsible for triggering settlements in such cases.
-More information on these concepts can be found at [ILP-RFC 0032: Peering, Clearing and Settling](https://github.com/interledger/rfcs/blob/master/0033-peering-clearing-settlement/0032-peering-clearing-settlement.md).
+This example illustrates a simple payment between two parties that reside on the same underlying Iroha network, building upon the [`setup-accounts`](../setup-accounts) example.
 
-This example shows a simple ILP payment where both connectors are on the same underlying Iroha network.
+Once all needed accounts have been set up, the parties can freely transact with one another.
+At one time or another, the unsettled balances between the two transacting peers will exceed their preset thresholds, meaning that a settlement must be performed before any transactions can further occur.
+ILP connectors intruct the settlement engines to perform settlements and settlement engines notify connectors of any incoming payments so that the balances can be updated accordingly.
 
-First, all the necessary accounts are set up (more details on this can be found in the [`setup-accounts`](../setup-accounts/README.md) example).
-Then, a payment from Alice to Bob is initiated.
-Since the payment amount exceeds Alice's connector `settle_threshold`, a settlement on the underlying Iroha network will be triggered.
-This is where the funds are actually transferred from one party to the other (from Alice to Bob).
-
-The following diagram shows the sequence of actions that need to be taken for making a payment and then settle the balances on the underlying ledger.
+The following diagram depicts the process of making a payment from Alice to Bob and settling the payment on the underlying Iroha ledger.
 
 ![Performing settlement](./images/perform-settlement.svg)

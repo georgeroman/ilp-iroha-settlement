@@ -1,19 +1,13 @@
-## ILP Setup Accounts
+## setup-accounts
 
-When facilitating transactions between peers, ILP connectors need to keep track of **accounts**, which represent credits and debits for a set of transactions between counterparties.
-These accounts are structured across the accounting and the settlement layer.
-In the accounting layer, the accounts identify the ILP connectors that are responsible for proxying transactions.
-In the settlement layer, the accounts identify the ledger addresses of the peers that are transacting.
-More information on these concepts can be found at [ILP-RFC 0032: Peering, Clearing and Settling](https://github.com/interledger/rfcs/blob/master/0032-peering-clearing-settlement/0032-peering-clearing-settlement.md).
+This particular example shows how ILP accounts are set up in the context of two transacting parties - Alice and Bob - each operating within their own ILP connector.
 
-This particular example shows how ILP accounts are set up in the context of two transacting parties - Alice and Bob.
+In order for Alice and Bob to connect they must have added each other as an account, that is Alice's connector must have created an account for Bob and Bob's connector must have created an account for Alice.
+This setup process will trigger corresponding account setup actions on each connector's settlement engine.
+This is needed in order for the settlement engines to exchange the ledger identifiers that will be used when performing settlements.
+The settlement engines are able to exchange arbitrary messages via their ILP connectors that act as proxies.
 
-First, both Alice and Bob need to set up an account with an ILP connector.
-Then, each ILP connector sets up an account with the counterparty's ILP connector.
-This second step will, in turn, trigger an account setup at the settlement layer.
-The settlement engines of the two ILP connectors will communicate via their ILP nodes and exchange ledger identifiers that are to be used for settling.
-
-The following diagram shows the sequence of actions corresponding to Alice's side for exchanging ledger identifiers.
-Bob's side is symmetric.
+The following diagram illustrates the process of creating Bob's account on Alice's connector from the perspective of the settlement engine.
+The other side for creating Alice's account on Bob's connector is symmetric.
 
 ![Exchanging ledger identifiers](./images/exchange-ledger-ids.svg)

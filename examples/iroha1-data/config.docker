@@ -1,8 +1,8 @@
 {
   "block_store_path" : "/tmp/block_store/",
-  "torii_port" : 50051,
-  "internal_port" : 10001,
-  "pg_opt" : "host=postgres port=5432 user=postgres password=password",
+  "torii_port" : 50052,
+  "internal_port" : 10002,
+  "pg_opt" : "host=postgres1 port=5433 user=postgres password=password",
   "max_proposal_size" : 10,
   "proposal_delay" : 5000,
   "vote_delay" : 5000,

@@ -80,7 +80,7 @@
                        },
                        {
                           "createAsset":{
-                             "assetName":"coin",
+                             "assetName":"coin0",
                              "domainId":"test",
                              "precision":2
                           }

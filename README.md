@@ -2,7 +2,7 @@
 
 # ilp-iroha-settlement
 
-> #### [RFC](https://interledger.org/rfcs/0038-settlement-engines) compliant [Interledger](https://interledger.org) settlement engine for [Hyperledger Iroha](https://github.com/hyperledger/iroha)
+> #### [RFC](https://interledger.org/rfcs/0038-settlement-engines)-compliant [Interledger](https://interledger.org) settlement engine for [Hyperledger Iroha](https://github.com/hyperledger/iroha)
 
 ![ILP settlement structure](./images/structure.svg)
 
@@ -20,4 +20,4 @@ mvn install
 
 ## Examples
 
-Several examples showcasing various functionalities of the settlement engine can be found in the [`examples`](https://github.com/georgeroman/ilp-iroha-settlement/tree/master/examples) directory.
+Several examples illustrating the integration between Hyperledger Iroha and the Interledger protocol can be found in the [`examples`](,/examples) directory.

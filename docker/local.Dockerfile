@@ -2,7 +2,7 @@
 
 # Usage:
 # Run the following in the root directory of the repository:
-# docker build -f docker/local.dockerfile -t groman99/ilp-iroha-settlement .
+# docker build -f docker/local.Dockerfile -t groman99/ilp-iroha-settlement .
 
 FROM openjdk:8-jre-alpine
 WORKDIR /ilp
