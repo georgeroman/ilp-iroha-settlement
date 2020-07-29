@@ -16,13 +16,6 @@ public class ApplicationContainerCustomizer implements WebServerFactoryCustomize
 
   @Override
   public void customize(ConfigurableWebServerFactory factory) {
-    try {
-      factory.setPort(Integer.parseInt(this.bindPort));
-    } catch (NumberFormatException err) {
-      this.logger.error("Invalid bind-port: {}", err.getMessage());
-
-      // Fatal error, so we exit
-      System.exit(1);
-    }
+    factory.setPort(Integer.parseInt(this.bindPort));
   }
 }

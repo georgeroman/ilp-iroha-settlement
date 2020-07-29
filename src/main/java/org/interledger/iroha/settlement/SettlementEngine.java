@@ -122,14 +122,10 @@ public class SettlementEngine {
     try {
       URL irohaUrl = new URL(this.toriiUrl);
       this.irohaApi = new IrohaAPI(irohaUrl.getHost(), irohaUrl.getPort()); 
+      this.queryApi = new QueryAPI(this.irohaApi, this.irohaAccountId, this.irohaAccountKeypair);
     } catch (MalformedURLException err) {
-      this.logger.error("Invalid torii-url: {}", err.getMessage());
-
-      // Fatal error, so we exit
-      System.exit(1);
+      // Should be unreachable, as validation is done at startup
     }
-
-    this.queryApi = new QueryAPI(this.irohaApi, this.irohaAccountId, this.irohaAccountKeypair);
 
     // Make sure the provided Iroha account is correct by performing a simple query
     try {
@@ -287,12 +283,6 @@ public class SettlementEngine {
                 HttpResponse response = request.execute();
 
                 this.logger.info("The connector responded with: {}", response.getStatusMessage());
-              } catch (NumberFormatException err) {
-                this.logger.error("Invalid asset-scale: {}", err.getMessage());
-
-                // We encountered errors, so we mark the transaction as unchecked and skip processing the rest
-                successfullyCheckedTx = false;
-                break;
               } catch (IOException err) {
                 this.logger.error("Error while notifying connector of settlement: {}", err.getMessage());
 

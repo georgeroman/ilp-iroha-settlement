@@ -5,6 +5,8 @@ import org.springframework.boot.DefaultApplicationArguments;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,14 +32,56 @@ public class Application {
     boolean success = true;
 
     // Make sure all required arguments are provided
-    // TODO: Also validate their format in order to stay clear of runtime errors
     List<String> requiredOptions = Arrays.asList("iroha-account-id", "keypair-name", "asset-id");
     for (String option : requiredOptions) {
-      if (!args.containsOption(option) || args.getOptionValues(option).size() != 1) {
-        System.err.println(
-            String.format("Option %s is required and should take a single value (e.g. --%s=<value>)", option, option)
-        );
+      if (!args.containsOption(option)) {
+        System.err.println(String.format("Option %s is required (e.g. --%s=<value>)", option, option));
         success = false;
+      }
+    }
+
+    // Validate URLs
+    List<String> urlOptions = Arrays.asList("connector-url", "torii-url", "redis-url");
+    for (String option : urlOptions) {
+      if (args.containsOption(option)) {
+        String url = args.getOptionValues(option).get(0);
+        try {
+          URL _ = new URL(url);
+        } catch (MalformedURLException err) {
+          System.err.println(String.format("Invalid URL for --%s", option));
+          success = false;
+        }
+      }
+    }
+
+    // Validate ports
+    List<String> portOptions = Arrays.asList("bind-port");
+    for (String option : portOptions) {
+      if (args.containsOption(option)) {
+        String strPort = args.getOptionValues(option).get(0);
+        try {
+          int port = Integer.parseInt(strPort);
+          if (port < 0 || port > 0xFFF) {
+            throw new NumberFormatException();
+          }
+        } catch (NumberFormatException err) {
+          System.err.println(String.format("Invalid port for --%s", option));
+          success = false;
+        }
+      }
+    }
+
+    // Validate numbers
+    List<String> numberOptions = Arrays.asList("asset-scale");
+    for (String option : numberOptions) {
+      if (args.containsOption(option)) {
+        String number = args.getOptionValues(option).get(0);
+        try {
+          int _ = Integer.parseInt(number);
+        } catch (NumberFormatException err) {
+          System.err.println(String.format("Invalid number for --%s", option));
+          success = false;
+        }
       }
     }
 
@@ -59,6 +103,8 @@ public class Application {
     System.out.println("                       (defaults to http://127.0.0.1:7771)");
     System.out.println("  --torii-url          Iroha Torii endpoint");
     System.out.println("                       (defaults to http://127.0.0.1:50051)");
+    System.out.println("  --redis-url          Redis endpoint for storage");
+    System.out.println("                       (defaults to redis://127.0.0.1:6379)");
     System.out.println("  --iroha-account-id   Iroha account id");
     System.out.println("                       (required)");
     System.out.println("  --keypair-name       Iroha account keypair files name (.pub and .priv)");

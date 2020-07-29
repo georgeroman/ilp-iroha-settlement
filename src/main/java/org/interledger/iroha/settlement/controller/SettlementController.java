@@ -138,13 +138,6 @@ public class SettlementController {
         this.store.savePeerIrohaAccountId(settlementAccount.getId(), paymentDetailsResponse.getIrohaAccountId());
 
         return new ResponseEntity<>(HttpStatus.CREATED); 
-      } catch (MalformedURLException err) {
-        // Once this happens, it will always happen
-        this.logger.error("Invalid connector-url: {}", err.getMessage());
-        this.logger.info("Restart the settlement engine with a valid connector-url value");
-
-        // Fatal error
-        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
       } catch (IOException err) {
         this.logger.error("Error while handling payment details: {}", err.getMessage());
 
@@ -259,13 +252,6 @@ public class SettlementController {
       }
 
       return new ResponseEntity<>(headers, HttpStatus.CREATED);
-    } catch (NumberFormatException err) {
-      // Once this happens, it will always happen
-      this.logger.error("Invalid asset-scale: {}", err.getMessage());
-      this.logger.info("Restart the settlement engine with a valid asset-scale value");
-
-      // Fatal error
-      return new ResponseEntity<>(headers, HttpStatus.INTERNAL_SERVER_ERROR);
     } catch (IrohaException err) {
       this.logger.error("Could not send transfer command to Iroha: {}", err.getMessage());
 

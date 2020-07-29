@@ -12,7 +12,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class PaymentDetailsMessage {
   // We need @Key for Google's http client's serialization/deserialization
-
   @Key
   private String irohaAccountId;
 }
