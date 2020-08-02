@@ -1,14 +1,11 @@
 package org.interledger.iroha.settlement.store;
 
-import org.springframework.stereotype.Component;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Component
 public class InMemoryStore implements Store {
   private Map<String, String> settlementAccounts;
   private Map<String, BigDecimal> leftovers;
@@ -16,6 +13,9 @@ public class InMemoryStore implements Store {
   private List<String> checkedTxs;
   private List<String> uncheckedTxs;
 
+  /**
+   * <p>In-memory store constructor.</p>
+   */
   public InMemoryStore() {
     this.settlementAccounts = new HashMap<>();
     this.leftovers = new HashMap<>();
@@ -77,9 +77,11 @@ public class InMemoryStore implements Store {
 
   @Override
   public String getLastCheckedTxHash() {
-    return this.checkedTxs.size() > 0 ?
-        this.checkedTxs.get(this.checkedTxs.size() - 1) :
-        null;
+    if (this.checkedTxs.size() > 0) {
+      return this.checkedTxs.get(this.checkedTxs.size() - 1);
+    } else {
+      return null;
+    }
   }
 
   @Override

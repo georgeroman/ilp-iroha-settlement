@@ -232,7 +232,7 @@ public class SettlementController {
 
       // Only allow a single peer at a time to access this part of the code
       // in order to properly handle idempotent requests
-      synchronized(this.store) {
+      synchronized (this.store) {
         Integer requestStatus = this.store.getRequestStatus(idempotencyKey);
         if (requestStatus != null) {
           this.logger.info("Skipping the settlement request as it was already processed before");

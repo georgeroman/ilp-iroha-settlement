@@ -159,7 +159,9 @@ public class SettlementEngine {
    */
   public void transfer(String toIrohaAccountId, BigDecimal amount) throws IrohaException {
     TransactionStatusObserver txObserver = TransactionStatusObserver.builder()
-        .onError(err -> { throw new IrohaException(err); })
+        .onError(err -> {
+          throw new IrohaException(err);
+        })
         .build();
 
     TransactionOuterClass.Transaction tx = Transaction.builder(this.irohaAccountId)
@@ -224,9 +226,9 @@ public class SettlementEngine {
 
             // If this check passes, we can be mostly sure that the transfer was part
             // of a settlement with this instance's Iroha account as a recipient
-            if (settlementAccountId != null &&
-                transferCmd.getDestAccountId().equals(this.irohaAccountId) &&
-                transferCmd.getAssetId().equals(this.assetId)) {
+            if (settlementAccountId != null
+                && transferCmd.getDestAccountId().equals(this.irohaAccountId)
+                && transferCmd.getAssetId().equals(this.assetId)) {
               try {
                 SettlementQuantity quantity = new SettlementQuantity(
                     // The amount of a Quantity object is unscaled
@@ -242,8 +244,6 @@ public class SettlementEngine {
 
                 // TODO: Find a way to abstract away the HTTP request/response handling parts
 
-                HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory();
-
                 GenericUrl connectorMessageUrl = new GenericUrl(this.connectorUrl);
                 connectorMessageUrl.appendRawPath("/accounts/" + settlementAccountId + "/settlements");
 
@@ -251,6 +251,8 @@ public class SettlementEngine {
                 headers.setAccept(APPLICATION_JSON_VALUE);
                 headers.setContentType(APPLICATION_JSON_VALUE);
                 headers.set("Idempotency-Key", UUID.randomUUID().toString());
+
+                HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory();
 
                 HttpRequest request = requestFactory.buildPostRequest(
                     connectorMessageUrl,

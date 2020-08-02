@@ -1,12 +1,14 @@
 package org.interledger.iroha.settlement;
 
+import org.interledger.iroha.settlement.config.DefaultArgumentValues;
+
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.DefaultApplicationArguments;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -46,8 +48,8 @@ public class Application {
       if (args.containsOption(option)) {
         String url = args.getOptionValues(option).get(0);
         try {
-          URL _ = new URL(url);
-        } catch (MalformedURLException err) {
+          new URI(url);
+        } catch (URISyntaxException err) {
           System.err.println(String.format("Invalid URL for --%s", option));
           success = false;
         }
@@ -77,7 +79,7 @@ public class Application {
       if (args.containsOption(option)) {
         String number = args.getOptionValues(option).get(0);
         try {
-          int _ = Integer.parseInt(number);
+          Integer.parseInt(number);
         } catch (NumberFormatException err) {
           System.err.println(String.format("Invalid number for --%s", option));
           success = false;
@@ -98,13 +100,13 @@ public class Application {
     System.out.println("");
     System.out.println("  --help               Display this help and exit");
     System.out.println("  --bind-port          Port to listen to settlement requests");
-    System.out.println("                       (defaults to 3000)");
+    System.out.println("                       (defaults to " + DefaultArgumentValues.BIND_PORT + ")");
     System.out.println("  --connector-url      Connector settlement API endpoint");
-    System.out.println("                       (defaults to http://127.0.0.1:7771)");
+    System.out.println("                       (defaults to " + DefaultArgumentValues.CONNECTOR_URL + ")");
     System.out.println("  --torii-url          Iroha Torii endpoint");
-    System.out.println("                       (defaults to http://127.0.0.1:50051)");
+    System.out.println("                       (defaults to " + DefaultArgumentValues.TORII_URL + ")");
     System.out.println("  --redis-url          Redis endpoint for storage");
-    System.out.println("                       (defaults to redis://127.0.0.1:6379)");
+    System.out.println("                       (defaults to " + DefaultArgumentValues.REDIS_URL + ")");
     System.out.println("  --iroha-account-id   Iroha account id");
     System.out.println("                       (required)");
     System.out.println("  --keypair-name       Iroha account keypair files name (.pub and .priv)");
@@ -112,7 +114,7 @@ public class Application {
     System.out.println("  --asset-id           The asset to be used for payments");
     System.out.println("                       (required)");
     System.out.println("  --asset-scale        The asset scale to be used for payments");
-    System.out.println("                       (defaults to 18)");
+    System.out.println("                       (defaults to " + DefaultArgumentValues.ASSET_SCALE + ")");
     System.out.println("");
     System.out.println("Please report issues at https://github.com/georgeroman/ilp-iroha-settlement/issues");
   }
