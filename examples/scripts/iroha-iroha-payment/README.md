@@ -1,4 +1,4 @@
-## inter-ledger-payment
+## iroha-iroha-payment
 
 This example shows the process of making a payment between parties residing on different underlying Iroha ledgers - Alice and Bob - thus illustrating how payments are routed within an ILP network.
 

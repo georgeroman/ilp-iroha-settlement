@@ -77,9 +77,9 @@ public class Application {
     List<String> numberOptions = Arrays.asList("asset-scale");
     for (String option : numberOptions) {
       if (args.containsOption(option)) {
-        String number = args.getOptionValues(option).get(0);
+        String strNumber = args.getOptionValues(option).get(0);
         try {
-          Integer.parseInt(number);
+          Integer.parseInt(strNumber);
         } catch (NumberFormatException err) {
           System.err.println(String.format("Invalid number for --%s", option));
           success = false;

@@ -1,4 +1,4 @@
-## single-ledger-payment
+## iroha-payment
 
 This example illustrates a simple payment between two parties that reside on the same underlying Iroha network, building upon the [`setup-accounts`](../setup-accounts) example.
 

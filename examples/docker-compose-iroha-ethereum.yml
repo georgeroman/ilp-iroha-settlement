@@ -1,0 +1,229 @@
+version: '3'
+
+services:
+  postgres0:
+    image: postgres:latest
+    networks:
+      - ilp-network
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    command: -c 'max_prepared_transactions=100'
+
+  iroha0:
+    image: hyperledger/iroha:latest
+    ports:
+      - '50051:50051'
+    networks:
+      - ilp-network
+    environment:
+      - IROHA_POSTGRES_HOST=postgres0
+      - IROHA_POSTGRES_PORT=5432
+      - IROHA_POSTGRES_USER=postgres
+      - IROHA_POSTGRES_PASSWORD=password
+      - KEY=node0
+    depends_on:
+      - postgres0
+    volumes:
+      - ./iroha0-data:/opt/iroha_data
+
+  ethereum:
+    image: trufflesuite/ganache-cli:latest
+    ports:
+      - '8545:8545'
+    networks:
+      - ilp-network
+    command: [
+        "--gasPrice", "0",
+        "--quiet",
+        "--account", "0x380eb0f3d505f087e438eca80bc4df9a7faa24f868e69fc0440261a0fc0567dc,1000000000000000000000",
+        "--account", "0xcc96601bc52293b53c4736a12af9130abf347669b3813f9ec4cafdf6991b087e,0"
+      ]
+
+  alice-node-redis:
+    image: redis:latest
+    networks:
+      - ilp-network
+
+  bob-node-redis:
+    image: redis:latest
+    networks:
+      - ilp-network
+    command: --port 6380
+
+  charlie-node-redis:
+    image: redis:latest
+    networks:
+      - ilp-network
+    command: --port 6381
+
+  alice-node:
+    image: interledgerrs/ilp-node:latest
+    ports:
+      - '7770:7770'
+      - '7771:7771'
+    networks:
+      - ilp-network
+    depends_on:
+      - alice-node-redis
+    restart: on-failure
+    command: [
+        '--ilp_address=example.alice',
+        '--secret_seed=8852500887504328225458511465394229327394647958135038836332350604',
+        '--admin_auth_token=alice_auth_token',
+        '--redis_url=redis://alice-node-redis:6379',
+        '--http_bind_address=0.0.0.0:7770',
+        '--settlement_api_bind_address=0.0.0.0:7771'
+      ]
+
+  bob-node:
+    image: interledgerrs/ilp-node:latest
+    ports:
+      - '8770:8770'
+      - '8771:8771'
+    networks:
+      - ilp-network
+    depends_on:
+      - bob-node-redis
+    restart: on-failure
+    command: [
+        '--ilp_address=example.bob',
+        '--secret_seed=6178940982650927693716509273967164509826378124457201908738317682',
+        '--admin_auth_token=bob_auth_token',
+        '--redis_url=redis://bob-node-redis:6380',
+        '--http_bind_address=0.0.0.0:8770',
+        '--settlement_api_bind_address=0.0.0.0:8771'
+      ]
+
+  charlie-node:
+    image: interledgerrs/ilp-node:latest
+    ports:
+      - '9770:9770'
+      - '9771:9771'
+    networks:
+      - ilp-network
+    depends_on:
+      - charlie-node-redis
+    restart: on-failure
+    command: [
+        '--secret_seed=1232362131122139900555208458637022875563691455429373719368053354',
+        '--admin_auth_token=charlie_auth_token',
+        '--redis_url=redis://charlie-node-redis:6381',
+        '--http_bind_address=0.0.0.0:9770',
+        '--settlement_api_bind_address=0.0.0.0:9771'
+      ]
+
+  alice-settlement-redis:
+    image: redis:latest
+    networks:
+      - ilp-network
+    command: --port 6382
+
+  bob-settlement-0-redis:
+    image: redis:latest
+    networks:
+      - ilp-network
+    command: --port 6383
+
+  bob-settlement-1-redis:
+    image: redis:latest
+    networks:
+      - ilp-network
+    command: --port 6384
+
+  charlie-settlement-redis:
+    image: redis:latest
+    networks:
+      - ilp-network
+    command: --port 6385
+
+  alice-settlement:
+    image: groman99/ilp-iroha-settlement:latest
+    ports:
+      - '3000:3000'
+    networks:
+      - ilp-network
+    depends_on:
+      - iroha0
+      - alice-settlement-redis
+    restart: on-failure
+    volumes:
+      - ./iroha0-data:/opt/iroha_data
+    command: [
+        '--torii-url=http://iroha0:50051',
+        '--connector-url=http://alice-node:7771',
+        '--redis-url=redis://alice-settlement-redis:6382',
+        '--iroha-account-id=alice@test',
+        '--keypair-name=/opt/iroha_data/alice@test',
+        '--asset-id=coin0#test',
+        '--asset-scale=6'
+      ]
+
+  bob-settlement-0:
+    image: groman99/ilp-iroha-settlement:latest
+    ports:
+      - '3001:3001'
+    networks:
+      - ilp-network
+    depends_on:
+      - iroha0
+      - bob-settlement-0-redis
+    restart: on-failure
+    volumes:
+      - ./iroha0-data:/opt/iroha_data
+    command: [
+        '--bind-port=3001',
+        '--torii-url=http://iroha0:50051',
+        '--connector-url=http://bob-node:8771',
+        '--redis-url=redis://bob-settlement-0-redis:6383',
+        '--iroha-account-id=bob@test',
+        '--keypair-name=/opt/iroha_data/bob@test',
+        '--asset-id=coin0#test',
+        '--asset-scale=6'
+      ]
+
+  bob-settlement-1:
+    image: interledgerrs/ilp-settlement-ethereum:latest
+    ports:
+      - '3002:3002'
+    networks:
+      - ilp-network
+    depends_on:
+      - ethereum
+      - bob-settlement-1-redis
+    restart: on-failure
+    command: [
+        '--settlement_api_bind_address=0.0.0.0:3002',
+        '--ethereum_url=http://ethereum:8545',
+        '--connector_url=http://bob-node:8771',
+        '--redis_url=redis://bob-settlement-1-redis:6384',
+        '--private_key=380eb0f3d505f087e438eca80bc4df9a7faa24f868e69fc0440261a0fc0567dc',
+        '--asset_scale=6',
+        '--confirmations=0',
+        '--poll_frequency=1000'
+      ]
+
+  charlie-settlement:
+    image: interledgerrs/ilp-settlement-ethereum:latest
+    ports:
+      - '3003:3003'
+    networks:
+      - ilp-network
+    depends_on:
+      - ethereum
+      - charlie-settlement-redis
+    restart: on-failure
+    command: [
+        '--settlement_api_bind_address=0.0.0.0:3003',
+        '--ethereum_url=http://ethereum:8545',
+        '--connector_url=http://charlie-node:9771',
+        '--redis_url=redis://charlie-settlement-redis:6385',
+        '--private_key=cc96601bc52293b53c4736a12af9130abf347669b3813f9ec4cafdf6991b087e',
+        '--asset_scale=6',
+        '--confirmations=0',
+        '--poll_frequency=1000'
+      ]
+
+networks:
+  ilp-network:
+    driver: bridge

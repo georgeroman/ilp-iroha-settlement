@@ -1,22 +1,22 @@
 #!/bin/bash
 
 printf "Sending transaction for depositing assets into Alice's Iroha0 account...\n"
-../helpers/add-asset-quantity.py "localhost:50051" "alice@test" "../../iroha0-data/alice@test.priv" "coin0#test" "1000"
+../helpers/iroha-add-asset-quantity.py "localhost:50051" "alice@test" "../../iroha0-data/alice@test.priv" "coin0#test" "1000"
 
 printf "Sending transaction for depositing assets into Bob's Iroha1 account...\n"
-../helpers/add-asset-quantity.py "localhost:50052" "bob@test" "../../iroha1-data/bob@test.priv" "coin1#test" "1000"
+../helpers/iroha-add-asset-quantity.py "localhost:50052" "bob@test" "../../iroha1-data/bob@test.priv" "coin1#test" "1000"
 
 printf "Checking Alice's Iroha0 balances...\n"
-../helpers/check-balances.py "localhost:50051" "alice@test" "../../iroha0-data/alice@test.priv" "alice@test"
+../helpers/iroha-check-balances.py "localhost:50051" "alice@test" "../../iroha0-data/alice@test.priv" "alice@test"
 
 printf "Checking Bob's Iroha0 balances...\n"
-../helpers/check-balances.py "localhost:50051" "alice@test" "../../iroha0-data/alice@test.priv" "bob@test"
+../helpers/iroha-check-balances.py "localhost:50051" "alice@test" "../../iroha0-data/alice@test.priv" "bob@test"
 
 printf "Checking Bob's Iroha1 balances...\n"
-../helpers/check-balances.py "localhost:50052" "bob@test" "../../iroha1-data/bob@test.priv" "bob@test"
+../helpers/iroha-check-balances.py "localhost:50052" "bob@test" "../../iroha1-data/bob@test.priv" "bob@test"
 
 printf "Checking Charlie's Iroha1 balances...\n"
-../helpers/check-balances.py "localhost:50052" "bob@test" "../../iroha1-data/bob@test.priv" "charlie@test"
+../helpers/iroha-check-balances.py "localhost:50052" "bob@test" "../../iroha1-data/bob@test.priv" "charlie@test"
 
 # Set up all accounts
 ./setup-accounts.sh
@@ -49,13 +49,13 @@ docker run --rm --network examples_ilp-network interledgerrs/ilp-cli:latest \
 sleep 10
 
 printf "Checking Alice's Iroha0 balances...\n"
-../helpers/check-balances.py "localhost:50051" "alice@test" "../../iroha0-data/alice@test.priv" "alice@test"
+../helpers/iroha-check-balances.py "localhost:50051" "alice@test" "../../iroha0-data/alice@test.priv" "alice@test"
 
 printf "Checking Bob's Iroha0 balances...\n"
-../helpers/check-balances.py "localhost:50051" "alice@test" "../../iroha0-data/alice@test.priv" "bob@test"
+../helpers/iroha-check-balances.py "localhost:50051" "alice@test" "../../iroha0-data/alice@test.priv" "bob@test"
 
 printf "Checking Bob's Iroha1 balances...\n"
-../helpers/check-balances.py "localhost:50052" "bob@test" "../../iroha1-data/bob@test.priv" "bob@test"
+../helpers/iroha-check-balances.py "localhost:50052" "bob@test" "../../iroha1-data/bob@test.priv" "bob@test"
 
 printf "Checking Charlie's Iroha1 balances...\n"
-../helpers/check-balances.py "localhost:50052" "bob@test" "../../iroha1-data/bob@test.priv" "charlie@test"
+../helpers/iroha-check-balances.py "localhost:50052" "bob@test" "../../iroha1-data/bob@test.priv" "charlie@test"
