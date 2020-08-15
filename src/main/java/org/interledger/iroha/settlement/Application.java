@@ -18,7 +18,7 @@ public class Application {
    * <p>Entrypoint for the application. Validates passed arguments and starts the server.</p>
    */
   public static void main(String[] args) {
-    // Make sure all required arguments are provided before starting
+    // Make sure all required arguments are provided and valid before starting
     handleArgs(new DefaultApplicationArguments(args));
 
     SpringApplication.run(Application.class, args);

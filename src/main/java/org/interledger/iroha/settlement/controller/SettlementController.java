@@ -92,8 +92,6 @@ public class SettlementController {
     // Only send request for payment details if we don't have that information
     if (this.store.getPeerIrohaAccountId(settlementAccount.getId()) == null) {
       try {
-        // TODO: Find a way to abstract away the HTTP request/response handling parts
-
         this.logger.info(
             "Serialized PaymentDetailsMessage object to be sent to peer: "
             + JSON_FACTORY.toString(paymentDetailsRequest)

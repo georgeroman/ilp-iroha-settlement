@@ -242,8 +242,6 @@ public class SettlementEngine {
 
                 this.logger.info("Serialized Quantity object to be sent to connector: " + serializedQuantity);
 
-                // TODO: Find a way to abstract away the HTTP request/response handling parts
-
                 GenericUrl connectorMessageUrl = new GenericUrl(this.connectorUrl);
                 connectorMessageUrl.appendRawPath("/accounts/" + settlementAccountId + "/settlements");
 
