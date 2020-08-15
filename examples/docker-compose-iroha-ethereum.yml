@@ -156,7 +156,7 @@ services:
         '--iroha-account-id=alice@test',
         '--keypair-name=/opt/iroha_data/alice@test',
         '--asset-id=coin0#test',
-        '--asset-scale=6'
+        '--asset-scale=2'
       ]
 
   bob-settlement-0:
@@ -179,7 +179,7 @@ services:
         '--iroha-account-id=bob@test',
         '--keypair-name=/opt/iroha_data/bob@test',
         '--asset-id=coin0#test',
-        '--asset-scale=6'
+        '--asset-scale=2'
       ]
 
   bob-settlement-1:
@@ -198,7 +198,7 @@ services:
         '--connector_url=http://bob-node:8771',
         '--redis_url=redis://bob-settlement-1-redis:6384',
         '--private_key=380eb0f3d505f087e438eca80bc4df9a7faa24f868e69fc0440261a0fc0567dc',
-        '--asset_scale=6',
+        '--asset_scale=2',
         '--confirmations=0',
         '--poll_frequency=1000'
       ]
@@ -219,7 +219,7 @@ services:
         '--connector_url=http://charlie-node:9771',
         '--redis_url=redis://charlie-settlement-redis:6385',
         '--private_key=cc96601bc52293b53c4736a12af9130abf347669b3813f9ec4cafdf6991b087e',
-        '--asset_scale=6',
+        '--asset_scale=2',
         '--confirmations=0',
         '--poll_frequency=1000'
       ]

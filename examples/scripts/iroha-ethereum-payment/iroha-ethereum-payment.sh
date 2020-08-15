@@ -23,24 +23,24 @@ printf "Informing connectors about the exchange rates...\n"
 
 curl --silent --output /dev/null --show-error \
     -X PUT -H 'Authorization: Bearer alice_auth_token' \
-    -d '{"COIN0#TEST": 1, "WEI": 10}' \
+    -d '{"COIN0#TEST": 10, "WEI": 1}' \
     http://localhost:7770/rates
 
 curl --silent --output /dev/null --show-error \
     -X PUT -H 'Authorization: Bearer bob_auth_token' \
-    -d '{"COIN0#TEST": 1, "WEI": 10}' \
+    -d '{"COIN0#TEST": 10, "WEI": 1}' \
     http://localhost:8770/rates
 
 curl --silent --output /dev/null --show-error \
     -X PUT -H 'Authorization: Bearer charlie_auth_token' \
-    -d '{"COIN0#TEST": 1, "WEI": 10}' \
+    -d '{"COIN0#TEST": 10, "WEI": 1}' \
     http://localhost:9770/rates
 
 printf "Sending a payment from Alice to Charlie...\n"
 docker run --rm --network examples_ilp-network interledgerrs/ilp-cli:latest \
     --node http://alice-node:7770 pay alice \
     --auth in_alice \
-    --amount 500 \
+    --amount 50 \
     --to http://charlie-node:9770/accounts/charlie/spsp
 
 sleep 10

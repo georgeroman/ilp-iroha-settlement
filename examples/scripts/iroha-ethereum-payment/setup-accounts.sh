@@ -6,7 +6,7 @@ docker run --rm --network examples_ilp-network interledgerrs/ilp-cli:latest \
     --auth alice_auth_token \
     --ilp-address example.alice \
     --asset-code "coin0#test" \
-    --asset-scale 6 \
+    --asset-scale 2 \
     --max-packet-amount 100 \
     --ilp-over-http-incoming-token in_alice \
     --settle-to 0
@@ -18,14 +18,14 @@ docker run --rm --network examples_ilp-network interledgerrs/ilp-cli:latest \
     --auth alice_auth_token \
     --ilp-address example.bob \
     --asset-code "coin0#test" \
-    --asset-scale 6 \
+    --asset-scale 2 \
     --max-packet-amount 100 \
     --settlement-engine-url http://alice-settlement:3000 \
     --ilp-over-http-incoming-token bob_password \
     --ilp-over-http-outgoing-token alice_password \
     --ilp-over-http-url http://bob-node:8770/accounts/alice/ilp \
-    --settle-threshold 500 \
-    --min-balance -1000 \
+    --settle-threshold 50 \
+    --min-balance -100 \
     --settle-to 0 \
     --routing-relation Peer &
 
@@ -36,14 +36,14 @@ docker run --rm --network examples_ilp-network interledgerrs/ilp-cli:latest \
     --auth bob_auth_token \
     --ilp-address example.alice \
     --asset-code "coin0#test" \
-    --asset-scale 6 \
+    --asset-scale 2 \
     --max-packet-amount 100 \
     --settlement-engine-url http://bob-settlement-0:3001 \
     --ilp-over-http-incoming-token alice_password \
     --ilp-over-http-outgoing-token bob_password \
     --ilp-over-http-url http://alice-node:7770/accounts/bob/ilp \
-    --settle-threshold 500 \
-    --min-balance -1000 \
+    --settle-threshold 50 \
+    --min-balance -100 \
     --settle-to 0 \
     --routing-relation Peer
 
@@ -53,13 +53,13 @@ docker run --rm --network examples_ilp-network interledgerrs/ilp-cli:latest \
     --node http://bob-node:8770 accounts create charlie \
     --auth bob_auth_token \
     --asset-code "WEI" \
-    --asset-scale 6 \
+    --asset-scale 2 \
     --settlement-engine-url http://bob-settlement-1:3002 \
     --ilp-over-http-incoming-token charlie_password \
     --ilp-over-http-outgoing-token bob_other_password \
     --ilp-over-http-url http://charlie-node:9770/accounts/bob/ilp \
-    --settle-threshold 50 \
-    --min-balance -100 \
+    --settle-threshold 500 \
+    --min-balance -1000 \
     --settle-to 0 \
     --routing-relation Child &
 
@@ -68,7 +68,7 @@ docker run --rm --network examples_ilp-network interledgerrs/ilp-cli:latest \
     --node http://charlie-node:9770 accounts create charlie \
     --auth charlie_auth_token \
     --asset-code "WEI" \
-    --asset-scale 6 \
+    --asset-scale 2 \
     --ilp-over-http-incoming-token in_charlie \
     --settle-to 0
 
@@ -79,13 +79,13 @@ docker run --rm --network examples_ilp-network interledgerrs/ilp-cli:latest \
     --auth charlie_auth_token \
     --ilp-address example.bob \
     --asset-code "WEI" \
-    --asset-scale 6 \
+    --asset-scale 2 \
     --settlement-engine-url http://charlie-settlement:3003 \
     --ilp-over-http-incoming-token bob_other_password \
     --ilp-over-http-outgoing-token charlie_password \
     --ilp-over-http-url http://bob-node:8770/accounts/charlie/ilp \
-    --settle-threshold 50 \
-    --min-balance -100 \
+    --settle-threshold 500 \
+    --min-balance -1000 \
     --settle-to 0 \
     --routing-relation Parent
 
