@@ -20,8 +20,10 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.util.ExponentialBackOff;
 import io.grpc.StatusRuntimeException;
+import io.reactivex.functions.Consumer;
 import iroha.protocol.Commands.Command;
 import iroha.protocol.Commands.TransferAsset;
+import iroha.protocol.Endpoint.ToriiResponse;
 import iroha.protocol.QryResponses.AccountResponse;
 import iroha.protocol.TransactionOuterClass;
 import jp.co.soramitsu.crypto.ed25519.Ed25519Sha3;
@@ -37,6 +39,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -157,11 +161,24 @@ public class SettlementEngine {
    *
    * @return
    */
+  @Retryable(
+      value = { IrohaException.class }, 
+      maxAttempts = 10,
+      backoff = @Backoff(delay = 1000, multiplier = 2)
+  )
   public void transfer(String toIrohaAccountId, BigDecimal amount) throws IrohaException {
+    Consumer<? super ToriiResponse> irohaErrorConsumer = err -> {
+      throw new IrohaException(err);
+    };
+    Consumer<? super Throwable> internalErrorConsumer = err -> {
+      throw new IrohaException(err);
+    };
+
     TransactionStatusObserver txObserver = TransactionStatusObserver.builder()
-        .onError(err -> {
-          throw new IrohaException(err);
-        })
+        .onNotReceived(irohaErrorConsumer)
+        .onMstExpired(irohaErrorConsumer)
+        .onUnrecognizedStatus(irohaErrorConsumer)
+        .onError(internalErrorConsumer)
         .build();
 
     TransactionOuterClass.Transaction tx = Transaction.builder(this.irohaAccountId)
@@ -169,7 +186,6 @@ public class SettlementEngine {
         .sign(this.irohaAccountKeypair)
         .build();
 
-    // TODO: Use exponential backoff
     this.irohaApi.transaction(tx)
         .blockingSubscribe(txObserver);
   }

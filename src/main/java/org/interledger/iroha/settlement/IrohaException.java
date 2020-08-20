@@ -1,5 +1,7 @@
 package org.interledger.iroha.settlement;
 
+import iroha.protocol.Endpoint.ToriiResponse;
+
 public class IrohaException extends Exception {
   public IrohaException(String errorMessage) {
     super(errorMessage);
@@ -7,5 +9,9 @@ public class IrohaException extends Exception {
 
   public IrohaException(Throwable error) {
     super(error);
+  }
+
+  public IrohaException(ToriiResponse irohaResponse) {
+    super(irohaResponse.getErrOrCmdName());
   }
 }
