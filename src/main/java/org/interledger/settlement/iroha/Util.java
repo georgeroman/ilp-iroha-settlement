@@ -1,4 +1,4 @@
-package org.interledger.iroha.settlement;
+package org.interledger.settlement.iroha;
 
 import static java.util.AbstractMap.SimpleImmutableEntry;
 

@@ -1,6 +1,6 @@
-package org.interledger.iroha.settlement;
+package org.interledger.settlement.iroha;
 
-import org.interledger.iroha.settlement.config.DefaultArgumentValues;
+import org.interledger.settlement.iroha.config.DefaultArgumentValues;
 
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.DefaultApplicationArguments;

@@ -1,18 +1,18 @@
-package org.interledger.iroha.settlement.controller;
+package org.interledger.settlement.iroha.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM;
-import static org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE;
 
-import org.interledger.iroha.settlement.IrohaException;
-import org.interledger.iroha.settlement.SettlementEngine;
-import org.interledger.iroha.settlement.Util;
-import org.interledger.iroha.settlement.config.DefaultArgumentValues;
-import org.interledger.iroha.settlement.message.PaymentDetailsMessage;
-import org.interledger.iroha.settlement.model.SettlementAccount;
-import org.interledger.iroha.settlement.model.SettlementQuantity;
-import org.interledger.iroha.settlement.store.Store;
+import org.interledger.settlement.common.controller.SettlementController;
+import org.interledger.settlement.common.model.SettlementAccount;
+import org.interledger.settlement.common.model.SettlementQuantity;
+import org.interledger.settlement.iroha.IrohaException;
+import org.interledger.settlement.iroha.SettlementEngine;
+import org.interledger.settlement.iroha.Util;
+import org.interledger.settlement.iroha.config.DefaultArgumentValues;
+import org.interledger.settlement.iroha.message.PaymentDetailsMessage;
+import org.interledger.settlement.iroha.store.Store;
 
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.GenericUrl;
@@ -36,8 +36,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
@@ -48,7 +46,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 @RestController
-public class SettlementController {
+public class IrohaSettlementController implements SettlementController {
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
   private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
@@ -66,19 +64,7 @@ public class SettlementController {
   @Autowired
   private Store store;
 
-  /**
-   * <p>Called by the Connector to inform the Settlement Engine that a new account was created within
-   * the accounting system using the given account identifier.</p>
-   *
-   * @param settlementAccount The account identifier as supplied by the Connector.
-   *
-   * @return
-   */
-  @RequestMapping(
-      path = "/accounts",
-      method = RequestMethod.POST,
-      consumes = APPLICATION_JSON_VALUE
-  )
+  @Override
   public ResponseEntity<Void> setupAccount(
       @RequestBody SettlementAccount settlementAccount
   ) {
@@ -147,17 +133,7 @@ public class SettlementController {
     }
   }
 
-  /**
-   * <p>Called by the Connector to inform the Settlement Engine that an account was deleted.</p>
-   *
-   * @param settlementAccountId The account identifier as supplied by the Connector.
-   *
-   * @return
-   */
-  @RequestMapping(
-      path = "/accounts/{settlementAccountId}",
-      method = RequestMethod.DELETE
-  )
+  @Override
   public ResponseEntity<Void> deleteAccount(
       @PathVariable String settlementAccountId
   ) {
@@ -173,22 +149,7 @@ public class SettlementController {
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
-  /**
-   * <p>Called by the Connector to asynchronously trigger a settlement in the Settlement Engine.</p>
-   *
-   * @param idempotencyKey      The idempotence identifier defined in the Settlement Engine RFC
-   *                            (typed as a {@link String}, but should always be a Type4 UUID).
-   *
-   * @param settlementAccountId The account identifier as supplied by the Connector.
-   *
-   * @return
-   */
-  @RequestMapping(
-      path = "/accounts/{settlementAccountId}/settlements",
-      method = RequestMethod.POST,
-      consumes = APPLICATION_JSON_VALUE,
-      produces = APPLICATION_JSON_VALUE
-  )
+  @Override
   public ResponseEntity<Void> performOutgoingSettlement(
       @RequestHeader("Idempotency-Key") String idempotencyKey,
       @RequestBody SettlementQuantity quantity,
@@ -258,22 +219,7 @@ public class SettlementController {
     }
   }
 
-  /**
-   * <p>Called by the Connector to process and respond to an incoming message from the peer's
-   * Settlement Engine.</p>
-   *
-   * @param message             A byte array of opaque data that was sent by the peer's Settlement Engine.
-   *
-   * @param settlementAccountId The account identifier as supplied by the Connector.
-   *
-   * @return A byte array representing the response message to be sent to the peer's Settlement Engine.
-   */
-  @RequestMapping(
-      path = "/accounts/{settlementAccountId}/messages",
-      method = RequestMethod.POST,
-      consumes = APPLICATION_OCTET_STREAM_VALUE,
-      produces = APPLICATION_OCTET_STREAM_VALUE
-  )
+  @Override
   public ResponseEntity<byte[]> handleIncomingMessage(
       @RequestBody byte[] message,
       @PathVariable String settlementAccountId

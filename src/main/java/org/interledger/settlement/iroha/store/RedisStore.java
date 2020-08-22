@@ -1,6 +1,6 @@
-package org.interledger.iroha.settlement.store;
+package org.interledger.settlement.iroha.store;
 
-import org.interledger.iroha.settlement.config.DefaultArgumentValues;
+import org.interledger.settlement.iroha.config.DefaultArgumentValues;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

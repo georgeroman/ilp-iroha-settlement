@@ -1,12 +1,12 @@
-package org.interledger.iroha.settlement;
+package org.interledger.settlement.iroha;
 
 import static javax.xml.bind.DatatypeConverter.parseHexBinary;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import org.interledger.iroha.settlement.IrohaException;
-import org.interledger.iroha.settlement.config.DefaultArgumentValues;
-import org.interledger.iroha.settlement.model.SettlementQuantity;
-import org.interledger.iroha.settlement.store.Store;
+import org.interledger.settlement.common.model.SettlementQuantity;
+import org.interledger.settlement.iroha.IrohaException;
+import org.interledger.settlement.iroha.config.DefaultArgumentValues;
+import org.interledger.settlement.iroha.store.Store;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.http.ByteArrayContent;

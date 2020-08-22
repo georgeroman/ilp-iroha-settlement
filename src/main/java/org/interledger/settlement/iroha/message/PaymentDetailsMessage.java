@@ -1,4 +1,4 @@
-package org.interledger.iroha.settlement.message;
+package org.interledger.settlement.iroha.message;
 
 import com.google.api.client.util.Key;
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package org.interledger.iroha.settlement.config;
+package org.interledger.settlement.iroha.config;
 
 public class DefaultArgumentValues {
   public static final String ASSET_SCALE = "18";

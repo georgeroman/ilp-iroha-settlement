@@ -11,7 +11,7 @@
     <version>2.3.0.RELEASE</version>
   </parent>
 
-  <groupId>org.interledger.iroha.settlement</groupId>
+  <groupId>org.interledger.settlement</groupId>
   <artifactId>ilp-iroha-settlement</artifactId>
   <version>master-SNAPSHOT</version>
 

@@ -1,4 +1,4 @@
-package org.interledger.iroha.settlement.store;
+package org.interledger.settlement.iroha.store;
 
 import java.math.BigDecimal;
 import java.util.List;

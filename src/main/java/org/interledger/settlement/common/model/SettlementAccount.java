@@ -1,4 +1,4 @@
-package org.interledger.iroha.settlement.model;
+package org.interledger.settlement.common.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
