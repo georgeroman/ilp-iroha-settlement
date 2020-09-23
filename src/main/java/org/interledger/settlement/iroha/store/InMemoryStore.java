@@ -1,11 +1,14 @@
 package org.interledger.settlement.iroha.store;
 
+import org.springframework.stereotype.Component;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Component
 public class InMemoryStore implements Store {
   private Map<String, String> settlementAccounts;
   private Map<String, BigDecimal> leftovers;

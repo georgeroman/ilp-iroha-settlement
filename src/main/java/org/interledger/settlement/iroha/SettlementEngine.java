@@ -132,8 +132,8 @@ public class SettlementEngine {
     }
 
     // Make sure the provided Iroha account is correct by performing a simple query
-    try {
       this.queryApi.getAccount(this.irohaAccountId);
+    try {
     } catch (StatusRuntimeException err) {
       this.logger.error("Error querying Iroha: {}", err.getMessage());
 

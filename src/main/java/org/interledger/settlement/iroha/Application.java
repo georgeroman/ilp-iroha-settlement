@@ -66,7 +66,7 @@ public class Application {
         String strPort = args.getOptionValues(option).get(0);
         try {
           int port = Integer.parseInt(strPort);
-          if (port < 0 || port > 0xFFF) {
+          if (port < 0 || port > 0xFFFF) {
             throw new NumberFormatException();
           }
         } catch (NumberFormatException err) {

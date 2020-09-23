@@ -42,7 +42,7 @@
     <dependency>
       <groupId>com.github.hyperledger</groupId>
       <artifactId>iroha-java</artifactId>
-      <version>master-SNAPSHOT</version>
+      <version>6.2.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.http-client</groupId>

@@ -26,9 +26,10 @@ public interface SettlementController {
   @RequestMapping(
       path = "/accounts",
       method = RequestMethod.POST,
-      consumes = APPLICATION_JSON_VALUE
+      consumes = APPLICATION_JSON_VALUE,
+      produces = APPLICATION_JSON_VALUE
   )
-  ResponseEntity<Void> setupAccount(
+  ResponseEntity<SettlementAccount> setupAccount(
       @RequestBody SettlementAccount settlementAccount
   );
 

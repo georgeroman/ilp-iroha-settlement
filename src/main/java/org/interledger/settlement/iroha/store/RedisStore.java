@@ -3,7 +3,7 @@ package org.interledger.settlement.iroha.store;
 import org.interledger.settlement.iroha.config.DefaultArgumentValues;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+// import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 
-@Component
+// @Component
 public class RedisStore implements Store {
   private static final String SETTLEMENT_ACCOUNTS = "settlement_accounts";
   private static final String LEFTOVERS = "leftovers";
