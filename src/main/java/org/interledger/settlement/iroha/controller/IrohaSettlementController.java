@@ -44,6 +44,7 @@ import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 public class IrohaSettlementController implements SettlementController {
@@ -65,71 +66,20 @@ public class IrohaSettlementController implements SettlementController {
   private Store store;
 
   @Override
-  public ResponseEntity<Void> setupAccount(
+  public ResponseEntity<SettlementAccount> setupAccount(
       @RequestBody SettlementAccount settlementAccount
   ) {
     this.logger.info("POST /accounts { id: {} }", settlementAccount.getId());
 
-    // Create a request for payment details for the current ILP account
-    PaymentDetailsMessage paymentDetailsRequest = new PaymentDetailsMessage(
-        this.settlementEngine.getIrohaAccountId()
-    );
+    if (settlementAccount.getId() == null) {
+      String settlementAccountId = UUID.randomUUID().toString();
+      settlementAccount.setId(settlementAccountId);
 
-    // Only send request for payment details if we don't have that information
-    if (this.store.getPeerIrohaAccountId(settlementAccount.getId()) == null) {
-      try {
-        this.logger.info(
-            "Serialized PaymentDetailsMessage object to be sent to peer: "
-            + JSON_FACTORY.toString(paymentDetailsRequest)
-        );
+      this.logger.info("Generated new settlement account id: {}", settlementAccountId);
 
-        HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory(
-            (HttpRequest request) -> {
-                request.setParser(new JsonObjectParser(JSON_FACTORY));
-            }
-        );
-
-        GenericUrl connectorMessageUrl = new GenericUrl(this.connectorUrl);
-        connectorMessageUrl.appendRawPath("/accounts/" + settlementAccount.getId() + "/messages");
-
-        HttpRequest request = requestFactory.buildPostRequest(
-            connectorMessageUrl,
-            ByteArrayContent.fromString(APPLICATION_JSON_VALUE, JSON_FACTORY.toString(paymentDetailsRequest))
-        );
-
-        // https://github.com/interledger/rfcs/blob/master/0038-settlement-engines/0038-settlement-engines.md#retry-behavior
-        ExponentialBackOff backoff = new ExponentialBackOff.Builder()
-            .setInitialIntervalMillis(500)
-            .setMaxElapsedTimeMillis(900000)
-            .setMaxIntervalMillis(6000)
-            .setMultiplier(1.5)
-            .setRandomizationFactor(0.5)
-            .build();
-        request.setUnsuccessfulResponseHandler(
-            new HttpBackOffUnsuccessfulResponseHandler(backoff)
-        );
-
-        // Send the payment details request and wait for a corresponding response
-        PaymentDetailsMessage paymentDetailsResponse = request.execute().parseAs(PaymentDetailsMessage.class);
-
-        this.logger.info(
-            "Got peer's Iroha account id ({}) corresponding to settlement account {}",
-            paymentDetailsResponse.getIrohaAccountId(),
-            settlementAccount.getId()
-        );
-
-        // Save peer's Iroha account id
-        this.store.savePeerIrohaAccountId(settlementAccount.getId(), paymentDetailsResponse.getIrohaAccountId());
-
-        return new ResponseEntity<>(HttpStatus.CREATED); 
-      } catch (IOException err) {
-        this.logger.error("Error while handling payment details: {}", err.getMessage());
-
-        // Fatal error
-        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-      }
+      return new ResponseEntity<SettlementAccount>(settlementAccount, HttpStatus.CREATED);
     } else {
-      return new ResponseEntity<>(HttpStatus.CREATED); 
+      return new ResponseEntity<>(HttpStatus.CREATED);
     }
   }
 
@@ -176,8 +126,63 @@ public class IrohaSettlementController implements SettlementController {
       // Retrieve the peer's Iroha account id corresponding to the current settlement account
       String peerIrohaAccountId = this.store.getPeerIrohaAccountId(settlementAccountId);
       if (peerIrohaAccountId == null) {
-        // Fatal error
-        return new ResponseEntity<>(headers, HttpStatus.INTERNAL_SERVER_ERROR);
+        // Create a request for payment details for the current ILP account
+        PaymentDetailsMessage paymentDetailsRequest = new PaymentDetailsMessage(
+            this.settlementEngine.getIrohaAccountId()
+        );
+
+        try {
+          this.logger.info(
+              "Serialized PaymentDetailsMessage object to be sent to peer: "
+              + JSON_FACTORY.toString(paymentDetailsRequest)
+          );
+
+          HttpRequestFactory requestFactory = HTTP_TRANSPORT.createRequestFactory(
+              (HttpRequest request) -> {
+                request.setParser(new JsonObjectParser(JSON_FACTORY));
+              }
+          );
+
+          GenericUrl connectorMessageUrl = new GenericUrl(this.connectorUrl);
+          connectorMessageUrl.appendRawPath("/accounts/" + settlementAccountId + "/messages");
+
+          HttpRequest request = requestFactory.buildPostRequest(
+              connectorMessageUrl,
+              ByteArrayContent.fromString(null, JSON_FACTORY.toString(paymentDetailsRequest))
+          );
+          request.getHeaders().setContentType("application/octet-stream");
+
+          // https://github.com/interledger/rfcs/blob/master/0038-settlement-engines/0038-settlement-engines.md#retry-behavior
+          ExponentialBackOff backoff = new ExponentialBackOff.Builder()
+              .setInitialIntervalMillis(500)
+              .setMaxElapsedTimeMillis(900000)
+              .setMaxIntervalMillis(6000)
+              .setMultiplier(1.5)
+              .setRandomizationFactor(0.5)
+              .build();
+          request.setUnsuccessfulResponseHandler(
+              new HttpBackOffUnsuccessfulResponseHandler(backoff)
+          );
+
+          // Send the payment details request and wait for a corresponding response
+          PaymentDetailsMessage paymentDetailsResponse = request.execute().parseAs(PaymentDetailsMessage.class);
+
+          peerIrohaAccountId = paymentDetailsResponse.getIrohaAccountId();
+
+          this.logger.info(
+              "Got peer's Iroha account id ({}) corresponding to settlement account {}",
+              paymentDetailsResponse.getIrohaAccountId(),
+              settlementAccountId
+          );
+
+          // Save peer's Iroha account id
+          this.store.savePeerIrohaAccountId(settlementAccountId, paymentDetailsResponse.getIrohaAccountId());
+        } catch (IOException err) {
+          this.logger.error("Error while handling payment details: {}", err.getMessage());
+
+          // Fatal error
+          return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
       }
 
       this.logger.info(
